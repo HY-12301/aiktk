@@ -859,7 +859,6 @@ setTimeout(function(){cloudSyncPull();updateHomeProgress();}, 600);
 
 // Load data - try gz first, then raw JSON
 function loadData(cb, errCb){
-  // 浏览器缓存读取（跨刷新持久化）
   function doFetch(c,err){
     fetch('all_questions.json.gz').then(function(r){
       if(!r.ok)throw new Error('HTTP '+r.status);
@@ -992,70 +991,59 @@ function doS(s,z,m){
   shuffle(bucket.seen);
 
   // Dynamic allocation ratios
-  var total=pool.length;
-  var limO=Math.min(bucket.overdue.length,25);  // hard cap: max 25 overdue per round
-  var limR=Math.min(bucket.relearn.length,20);
-  var limL=bucket.learning.length;
-  var limW=Math.min(bucket.weak.length,Math.ceil(total*0.30));
-  var limU=Math.min(bucket.unseen.length,Math.ceil(total*0.55));
-  var limS=Math.min(bucket.seen.length,Math.ceil(total*0.10));
+  // === Fixed allocation: 100题/轮, 新题≥70 ===
+  var SESSION_SIZE=100,MIN_NEW=70;
+  var limO=Math.min(bucket.overdue.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.30));
+  var limR=Math.min(bucket.relearn.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.30));
+  var limL=Math.min(bucket.learning.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.25));
+  var limW=Math.min(bucket.weak.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.15));
+  var limU=Math.min(bucket.unseen.length,MIN_NEW);
 
   // Build interleaved queue
   var o=bucket.overdue.slice(0,limO),r=bucket.relearn.slice(0,limR),l=bucket.learning.slice(0,limL);
-  var w=bucket.weak.slice(0,limW),u=bucket.unseen.slice(0,limU),se=bucket.seen.slice(0,limS);
-  var srcs=[o,r,l,w,u,se].filter(function(a){return a.length>0});
+  var w=bucket.weak.slice(0,limW),u=bucket.unseen.slice(0,limU);
+  var srcs=[o,r,l,w,u].filter(function(a){return a.length>0});
   var maxLen=Math.max.apply(null,srcs.map(function(a){return a.length}));
-  var result=[],pos=[],used=0;
+  var result=[],pos=[];
   srcs.forEach(function(a){pos.push(0)});
   for(var round=0;round<maxLen;round++){
-    // Rotate starting offset each round for fairness
     var start=round%srcs.length;
     for(var si=0;si<srcs.length;si++){
       var idx=(start+si)%srcs.length;
       if(pos[idx]<srcs[idx].length){
         result.push(srcs[idx][pos[idx]]);
-        pos[idx]++;used++;
+        pos[idx]++;
       }
     }
   }
-  // === Overflow: 排序 + 交错 + 上限 ===
+  // Top up new questions if under target
+  var newHave=0;result.forEach(function(q){if(!geM(q.id))newHave++});
+  if(newHave<MIN_NEW){
+    var need=MIN_NEW-newHave;
+    var extraU=bucket.unseen.slice(limU);
+    for(var ei=0;ei<extraU.length&&need>0;ei++){
+      if(!geM(extraU[ei].id)){result.push(extraU[ei]);need--}
+    }
+  }
+  // Trim to SESSION_SIZE, keeping new-first
+  if(result.length>SESSION_SIZE){
+    var keep=[],extra=[];
+    result.forEach(function(q){if(keep.length<SESSION_SIZE&&!geM(q.id))keep.push(q);else extra.push(q)});
+    for(var ei=0;ei<extra.length&&keep.length<SESSION_SIZE;ei++)keep.push(extra[ei]);
+    result=keep;
+  }
+  // Overflow: append remaining review questions if slots left
   var overflow=[];
   if(o.length>limO)overflow=overflow.concat(o.slice(limO));
   if(r.length>limR)overflow=overflow.concat(r.slice(limR));
   if(l.length>limL)overflow=overflow.concat(l.slice(limL));
   if(w.length>limW)overflow=overflow.concat(w.slice(limW));
-  if(u.length>limU)overflow=overflow.concat(u.slice(limU));
-  if(se.length>limS)overflow=overflow.concat(se.slice(limS));
-  if(overflow.length>0){
-    // 排除已在轮询队列中的题
+  if(overflow.length>0&&result.length<SESSION_SIZE){
     var usedIds={};result.forEach(function(q){usedIds[String(q.id)]=1});
     overflow=overflow.filter(function(q){return !usedIds[String(q.id)]});
-    // 按优先级排序（与 rWt 一致的混合权重）
-    overflow.sort(function(a,b){
-      var ka=kwWeakness(topicKey(a)),kb=kwWeakness(topicKey(b));
-      var ma=geM(a.id),mb=geM(b.id);
-      var ua=ma&&ma.nextReview?Math.max(0,(Date.now()-new Date(ma.nextReview).getTime())/86400000):0;
-      var ub=mb&&mb.nextReview?Math.max(0,(Date.now()-new Date(mb.nextReview).getTime())/86400000):0;
-      return (kb*0.6+ub*0.015)-(ka*0.6+ua*0.015);
-    });
-    // 交错：同一知识点不连续
-    var sorted=[],pending=overflow.slice(),lastTopic='';
-    while(pending.length){
-      var best=-1;
-      for(var i=0;i<pending.length;i++){
-        if(topicKey(pending[i])!==lastTopic){best=i;break}
-      }
-      if(best===-1)best=0;
-      sorted.push(pending[best]);
-      lastTopic=topicKey(pending[best]);
-      pending.splice(best,1);
-    }
-    // 总上限 200 题
-    var MAX_SESSION=200;
-    if((result.length+sorted.length)>MAX_SESSION)sorted=sorted.slice(0,MAX_SESSION-result.length);
-    result=result.concat(sorted);
-  }else{
-    result=result.concat(overflow);
+    overflow.sort(function(a,b){return kwWeakness(topicKey(b))-kwWeakness(topicKey(a))});
+    var slots=SESSION_SIZE-result.length;
+    result=result.concat(overflow.slice(0,slots));
   }
   S=result;
   I=0;K=0;B=0;U=0;A={};WW={};WX=[];R=Date.now();_rwtSkip=0;
