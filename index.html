@@ -2,12 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>爱题库</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>利群 · 客观题</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html{color-scheme:light dark}
-body{background:#f6f7fb;font-family:'Microsoft YaHei','PingFang SC',-apple-system,sans-serif;color:#3c4650}
+*{margin:0;padding:0;box-sizing:border-box;transition:background .25s,color .15s,border-color .25s}
+html{color-scheme:light}
+body{background:#f6f7fb;font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;color:#3c4650}
 a{text-decoration:none;color:inherit}li{list-style:none}
 
 .toolbar{height:56px;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;z-index:99}
@@ -157,14 +160,14 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .eb-topic-n{font-size:11px;color:#999;font-weight:400}
 .eb-topic-list{display:block;padding-left:4px}
 /* Dark mode — manual toggle */
-.dark, body.dark, html.dark{background:#121219!important;color:#d8dae0!important}
+.dark, body.dark, html.dark{background:#121219!important;color:#d8dae0!important}.dark,html.dark{color-scheme:dark}
 .dark .page{background:#121219}
 .dark .toolbar{background:#1e1e2a!important;border-color:#333}
 .dark #dmToggle{background:#333!important;border-color:#555!important;color:#ccc}
-.dark .quiz-type span[style*="e3f2fd"]{background:#1a2744!important;color:#8098d0!important}
-.dark .quiz-type span[style*="fff3e0"]{background:#3b2a1a!important;color:#d8944a!important}
-.dark .quiz-type span[style*="e8f5e9"]{background:#1a3b1a!important;color:#5baf5b!important}
-.dark .quiz-type span[style*="fce4ec"]{background:#3b1a22!important;color:#d06070!important}
+.dark [data-phase=learning]{background:#1a2744!important;color:#8098d0!important}
+.dark [data-phase=relearning]{background:#3b2a1a!important;color:#d8944a!important}
+.dark [data-phase=exponential]{background:#1a3b1a!important;color:#5baf5b!important}
+.dark [data-phase=new]{background:#3b1a22!important;color:#d06070!important}
 .dark .toolbar .tabs a{color:#999}
 .dark .toolbar .tabs a:hover,.dark .toolbar .tabs a.active{color:#6b9fff}
 .dark #dmToggle{color:#ddd}
@@ -182,7 +185,6 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .btn-blue{background:#3b5fc0;color:#fff;border-color:#3b5fc0}
 .dark .btn-green{background:#2d6b3f;color:#fff;border-color:#2d6b3f}
 .dark .btn-red{background:#8b2c2c;color:#fff;border-color:#8b2c2c}
-.dark .btn-green{background:#2e7d32;color:#fff;border-color:#2e7d32}
 .dark .btn-gray{background:#333;color:#aaa;border-color:#444}
 .dark .bottom-controls{background:#1a1a28;border-color:#2a2a3a}
 .dark .quiz-header{background:#1e1e2a!important;color:#d8dae0!important}
@@ -698,24 +700,22 @@ var Q=[],S=[],I=0,K=0,B=0,U=0,A={},R=null,D=false,EXAM_MODE=false,EXAM_TIMER=nul
 // Dark mode toggle
 function toggleDark(){
   var isDark=document.documentElement.classList.toggle('dark');
-  var icon=document.getElementById('dmIcon');
-  if(isDark){
-    icon.outerHTML='<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-  }else{
-    icon.outerHTML='<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  }
+  updateDmIcon(isDark);
   localStorage.setItem('dm',isDark?'1':'0');
 }
+function updateDmIcon(isDark){
+  var icon=document.getElementById('dmIcon');if(!icon)return;
+  icon.outerHTML=isDark
+    ?'<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+    :'<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
 (function(){
-  if(localStorage.getItem('dm')==='1'){
-    document.documentElement.classList.add('dark');
-  }
-  var el=document.getElementById('dmToggle');
-  if(el&&document.documentElement.classList.contains('dark')){
-    var icon=document.getElementById('dmIcon');
-    icon.outerHTML='<svg id="dmIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-    el.style.background='#333';el.style.borderColor='#555';
-  }
+  var dm=localStorage.getItem('dm');
+  var isDark=dm==='1'||(dm===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+  if(isDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}
+  var icon=document.getElementById('dmIcon');
+  updateDmIcon(isDark);
+})()
 })();
 var DEEPSEEK_KEY=localStorage.getItem('deepseekKey')||'';
 var DEEPSEEK_URL='https://api.deepseek.com/v1/chat/completions';
@@ -991,33 +991,24 @@ function doS(s,z,m){
   shuffle(bucket.seen);
 
   // Dynamic allocation ratios
-  // === Fixed allocation: 100题/轮, 新题≥70 ===
+  // === 固定 100 题，≥70 新题，顺序随机 ===
   var SESSION_SIZE=100,MIN_NEW=70;
-  var limO=Math.min(bucket.overdue.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.30));
-  var limR=Math.min(bucket.relearn.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.30));
-  var limL=Math.min(bucket.learning.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.25));
-  var limW=Math.min(bucket.weak.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.15));
-  var limU=Math.min(bucket.unseen.length,MIN_NEW);
-
-  // 合并 + 随机打乱
-  var result=bucket.overdue.slice(0,limO)
-    .concat(bucket.relearn.slice(0,limR))
-    .concat(bucket.learning.slice(0,limL))
-    .concat(bucket.weak.slice(0,limW))
-    .concat(bucket.unseen.slice(0,limU));
-  shuffle(result);
-  // 不到 100 题则从新题补
-  if(result.length<SESSION_SIZE){
-    var more=bucket.unseen.slice(limU);
-    shuffle(more);
-    for(var i=0;i<more.length&&result.length<SESSION_SIZE;i++)result.push(more[i]);
-  }
+  shuffle(bucket.unseen);
+  var news=bucket.unseen.slice(0,MIN_NEW);
+  var reviews=bucket.overdue.slice(0,9)
+    .concat(bucket.relearn.slice(0,9))
+    .concat(bucket.learning.slice(0,8))
+    .concat(bucket.weak.slice(0,4));
+  var result=news.concat(reviews);
+  // 不足100用更多新题补
   if(result.length<SESSION_SIZE){
     var used={};result.forEach(function(q){used[String(q.id)]=1});
-    var rest=pool.filter(function(q){return !used[String(q.id)]});
-    shuffle(rest);
-    for(var i=0;i<rest.length&&result.length<SESSION_SIZE;i++)result.push(rest[i]);
+    for(var i=MIN_NEW;i<bucket.unseen.length&&result.length<SESSION_SIZE;i++){
+      if(!used[String(bucket.unseen[i].id)])result.push(bucket.unseen[i]);
+    }
   }
+  shuffle(result);
+  // v20260712-shuffle-check: confirmed
   S=result.slice(0,SESSION_SIZE);
   I=0;K=0;B=0;U=0;A={};WW={};WX=[];R=Date.now();_rwtSkip=0;
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
@@ -1059,11 +1050,11 @@ function qR(){
   // Memory status tag
   var mem=geM(q.id);
   if(mem){
-    if(mem.phase==='new'||mem.phase==='learning')    h+='<span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:3px;font-size:10px">复习'+(mem.learningStepIdx+1)+'</span>';
-    else if(mem.phase==='relearning')h+='<span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:3px;font-size:10px">重学</span>';
-    else if(mem.phase==='exponential')h+='<span style="background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:3px;font-size:10px">巩固</span>';
+    if(mem.phase==='new'||mem.phase==='learning')    h+='<span data-phase="learning" style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:3px;font-size:10px">复习'+(mem.learningStepIdx+1)+'</span>';
+    else if(mem.phase==='relearning')h+='<span data-phase="relearning" style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:3px;font-size:10px">重学</span>';
+    else if(mem.phase==='exponential')h+='<span data-phase="exponential" style="background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:3px;font-size:10px">巩固</span>';
   }else{
-    h+='<span style="background:#fce4ec;color:#c62828;padding:1px 6px;border-radius:3px;font-size:10px">新题</span>';
+    h+='<span data-phase="new" style="background:#fce4ec;color:#c62828;padding:1px 6px;border-radius:3px;font-size:10px">新题</span>';
   }
   h+='</div>';
   h+='<div class="quiz-question">'+esc(q.content)+'</div>';
@@ -1186,9 +1177,22 @@ function callDeepSeek(q, did, ua){
       var tm=reply.match(/<<<topic:([^>]+)>>>/);
       if(tm){topicFix=tm[1].trim();analysis=reply.replace(/<<<topic:[^>]+>>>/,'').trim()}
       el.innerHTML='<b style="color:#2b3fd4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek AI</b><div style="margin-top:6px;font-size:13px;line-height:1.8">'+fmtReply(analysis)+'</div>';
-      // Save AI topic fix
+      // Save AI topic fix + migrate kw
       if(topicFix&&topicFix.length<=16){
-        topicFix=topicFix.split('.')[0];if(topicFix.length>8)topicFix=topicFix.substring(0,8);var g=GS();g.topicFixes[String(q.id)]=topicFix;SS(g);
+        topicFix=topicFix.split('.')[0];if(topicFix.length>8)topicFix=topicFix.substring(0,8);
+        var g=GS();
+        // 迁移旧 kw 数据
+        var oldRaw=g.topicFixes[String(q.id)]||(q.topic||'');
+        var oldBase=oldRaw.split('.')[0];var oldTk=q.lawName+'.'+oldBase;
+        g.topicFixes[String(q.id)]=topicFix;
+        var newTk=q.lawName+'.'+topicFix;
+        if(oldTk!==newTk&&g.kw[oldTk]){
+          var or=g.kw[oldTk];
+          var nr=g.kw[newTk]||{w:0,t:0,ts:''};
+          nr.w+=or.w;nr.t+=or.t;nr.ts=or.ts;
+          g.kw[newTk]=nr;delete g.kw[oldTk];
+        }
+        SS(g);
         var ts=document.getElementById('tpcSpan');if(ts){ts.textContent=topicFix;ts.title=topicFix}
       }
     } else {
@@ -1324,9 +1328,18 @@ function submitAnswer(){
   var ok=A[q.id].a===q.correctAnswer;
   if(ok){
     K++;
-    var d=GS();d.done[q.id]={law:q.lawName,ok:true,time:new Date().toISOString()}
+    var d=GS();d.done[q.id]={law:q.lawName,ok:true,time:new Date().toISOString()};
+    // Auto-clear error: 连对3次移出错题本
+    var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
+    if(ei!==-1){d.w[ei].streak=(d.w[ei].streak||0)+1;if(d.w[ei].streak>=3)d.w.splice(ei,1)}
     SS(d);
   } else {B++;rW(q)}
+  // 实时统计：每答一题写入今日趋势
+  var d2=GS(),today=new Date().toISOString().substring(0,10);
+  var hi=d2.h.findIndex(function(h){return h.date.substring(0,10)===today});
+  if(hi!==-1){d2.h[hi].t++;if(ok)d2.h[hi].k++}else{d2.h.push({date:new Date().toISOString(),t:1,k:ok?1:0,b:ok?0:1})}
+  if(d2.h.length>50)d2.h=d2.h.slice(-50);
+  SS(d2);
   var tp=topicName(q);
   if(!ok)WW[tp]=(WW[tp]||0)+1;
   // Track session-local errors for AI summary
@@ -1349,8 +1362,8 @@ function submitAnswer(){
     },200);
   }
 }
-function skipQ(){U++;I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{rWt();qR();scrollTop()}}
-function nextQ(){I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{rWt();qR();scrollTop()}}
+function skipQ(){U++;I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
+function nextQ(){I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
 function prevQ(){if(I>0){I--;qR();scrollTop()}}
 function scrollTop(){if(window.innerWidth<=768)window.scrollTo({top:0,behavior:'smooth'})}
 
@@ -1390,9 +1403,10 @@ function rWt(){
 
 function rW(q){
   var d=GS();
-  if(!d.w.some(function(w){return String(w.id)===String(q.id)})){
-    d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer});
-  }
+  var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
+  if(ei===-1){
+    d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
+  } else {d.w[ei].streak=0}
   d.done[q.id]={law:q.lawName,ok:false,time:new Date().toISOString()};
   SS(d);
   debounceSync();
@@ -1426,12 +1440,11 @@ function eQ(){
   document.getElementById('sRate').textContent=t>0?Math.round(K/t*100)+'%':'0%';
 
   var d=GS(),rc=d.w.slice(-Math.min(Math.max(B,U),30));
-  var tc={};
+  var tc={},qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
   rc.forEach(function(w){
-    var q=Q.find(function(qq){return qq.id==w.id});if(!q)return;
-    var res=q.questionResolution||'';
-    var m=res.match(/本题(?:考查|考点|涉及)(.+?)[。，]/);
-    tc[m?m[1].trim():'其他']=(tc[m?m[1].trim():'其他']||0)+1;
+    var q=qById[String(w.id)];if(!q)return;
+    var topic=topicName(q);
+    tc[topic]=(tc[topic]||0)+1;
   });
   var st=Object.entries(tc).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
   var th='';
@@ -1464,8 +1477,6 @@ function eQ(){
   }
 
   d.s=(d.s||0)+1;d.t=(d.t||0)+t;d.k=(d.k||0)+K;
-  d.h=d.h||[];if(d.h.length>50)d.h=d.h.slice(-50);
-  d.h.push({date:new Date().toISOString(),t:t,k:K,b:B+U});
   SS(d);
   cloudSyncPush();  // sync to cloud
 
@@ -1479,16 +1490,15 @@ function rEB(){
   document.getElementById('ebTotal').textContent=w.length+' 题';
   if(!w.length){document.getElementById('ebGrid').innerHTML='<div class="eb-empty">暂无错题，继续保持！</div>';return}
 
-  // Group by subject then by topic
+  // Group by subject then by topic (fast: build id→q map once)
   var colors={MF:'#4d6bfe',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
+  var qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
   var bySubject={};
   w.forEach(function(err){
-    var q=Q.find(function(qq){return qq.id==err.id});if(!q)return;
+    var q=qById[String(err.id)];if(!q)return;
     var subj=q.lawName||'未知';
-    var res=q.questionResolution||'';
-    var m=res.match(/本题(?:考查|考点|涉及)(.+?)[。，]/);
-    var topic=m?m[1].trim().substring(0,16):'其他';
+    var topic=topicName(q);
     if(!bySubject[subj])bySubject[subj]={};
     if(!bySubject[subj][topic])bySubject[subj][topic]=[];
     bySubject[subj][topic].push({q:q,err:err});
@@ -1692,19 +1702,18 @@ function togglePDetail(kk){
   var sj=(window._pData||[]).find(function(s){return s.kk===kk});if(!sj)return;
   if(el.dataset.open===kk){el.classList.remove('show');el.dataset.open='';return}
   el.dataset.open=kk;
-  var memData=GS().mem||{},phases={exponential:0,learning:0,relearning:0};
+  var memData=GS().mem||{},phases={exponential:0,relearning:0};
   Object.keys(memData).forEach(function(qid){
     var st=memData[qid],lawName=st.law||id2law[qid];
     if(!lawName||lawName!==sj.name)return;
     if(st.phase==='exponential')phases.exponential++;
-    else if(st.phase==='learning')phases.learning++;
     else if(st.phase==='relearning')phases.relearning++;
 
   });
-  var totalMem=phases.exponential+phases.learning+phases.relearning||1;
-  var mcolors={exponential:'#43a047',learning:'#4d6bfe',relearning:'#ff9800'};
-  var mnames={exponential:'巩固',learning:'学习中',relearning:'重学'};
-  var memHTML='<div class="p-dmem">'+['exponential','learning','relearning'].map(function(k){
+  var totalMem=phases.exponential+phases.relearning||1;
+  var mcolors={exponential:'#43a047',relearning:'#ff9800'};
+  var mnames={exponential:'巩固',relearning:'重学'};
+  var memHTML='<div class="p-dmem">'+['exponential','relearning'].map(function(k){
     var c=mcolors[k],n=mnames[k],v=phases[k],pct=Math.round(v/totalMem*100);
     return '<div class="mchunk" style="background:'+c+'15;border:1px solid '+c+'50"><div class="mn" style="color:'+c+'">'+v+'</div><div class="ml">'+n+' ('+pct+'%)</div></div>';
   }).join('')+'</div>';
@@ -2186,17 +2195,19 @@ document.addEventListener('keydown',function(e){
   var qArea=document.getElementById('quizLeft');
   if(!qArea)return;
   var key=e.key;
-  // 1-4: 选选项
-  if(key>='1'&&key<='4'){
+  // QWER: 选选项
+  var keyMap={q:0,w:1,e:2,r:3};
+  var idx=keyMap[key.toLowerCase()];
+  if(idx!==undefined){
     var submitBtn=document.getElementById('btnSubmit');
     if(submitBtn&&submitBtn.style.display!=='none'){
       var opts=qArea.querySelectorAll('.quiz-opt[data-opt]');
-      if(opts&&opts[key-1]){opts[key-1].click();e.preventDefault()}
+      if(opts&&opts[idx]){opts[idx].click();e.preventDefault()}
     }
     return;
   }
-  // Enter: 提交或下一题
-  if(key==='Enter'){
+  // Space/Enter: 提交或下一题
+  if(key===' '||key==='Enter'){
     var nextBtn=document.getElementById('btnNext');
     if(nextBtn&&nextBtn.style.display!=='none'){nextBtn.click();e.preventDefault();return}
     var submitBtn=document.getElementById('btnSubmit');
