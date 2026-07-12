@@ -586,7 +586,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   <div class="result-card"><h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-6"/></svg> 本次刷题总结</h3>
     <div class="stat-row"><span class="lbl">做题总数</span><span class="val" id="sTotal">0</span></div>
     <div class="stat-row"><span class="lbl">正确</span><span class="val" style="color:#0dce7f" id="sOk">0</span></div>
-    <div class="stat-row"><span class="lbl">错误/跳过</span><span class="val" style="color:#ff6b6b" id="sBad">0</span></div>
+    <div class="stat-row"><span class="lbl">错误</span><span class="val" style="color:#ff6b6b" id="sBad">0</span></div>
     <div class="stat-row"><span class="lbl">正确率</span><span class="val" id="sRate">0%</span></div>
   </div>
   <div class="result-card"><h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 易错知识点 Top10</h3><div id="sTopics"><p class="empty-state">暂无数据</p></div></div>
@@ -999,53 +999,26 @@ function doS(s,z,m){
   var limW=Math.min(bucket.weak.length,Math.ceil((SESSION_SIZE-MIN_NEW)*0.15));
   var limU=Math.min(bucket.unseen.length,MIN_NEW);
 
-  // Build interleaved queue
-  var o=bucket.overdue.slice(0,limO),r=bucket.relearn.slice(0,limR),l=bucket.learning.slice(0,limL);
-  var w=bucket.weak.slice(0,limW),u=bucket.unseen.slice(0,limU);
-  var srcs=[o,r,l,w,u].filter(function(a){return a.length>0});
-  var maxLen=Math.max.apply(null,srcs.map(function(a){return a.length}));
-  var result=[],pos=[];
-  srcs.forEach(function(a){pos.push(0)});
-  for(var round=0;round<maxLen;round++){
-    var start=round%srcs.length;
-    for(var si=0;si<srcs.length;si++){
-      var idx=(start+si)%srcs.length;
-      if(pos[idx]<srcs[idx].length){
-        result.push(srcs[idx][pos[idx]]);
-        pos[idx]++;
-      }
-    }
+  // 合并 + 随机打乱
+  var result=bucket.overdue.slice(0,limO)
+    .concat(bucket.relearn.slice(0,limR))
+    .concat(bucket.learning.slice(0,limL))
+    .concat(bucket.weak.slice(0,limW))
+    .concat(bucket.unseen.slice(0,limU));
+  shuffle(result);
+  // 不到 100 题则从新题补
+  if(result.length<SESSION_SIZE){
+    var more=bucket.unseen.slice(limU);
+    shuffle(more);
+    for(var i=0;i<more.length&&result.length<SESSION_SIZE;i++)result.push(more[i]);
   }
-  // Top up new questions if under target
-  var newHave=0;result.forEach(function(q){if(!geM(q.id))newHave++});
-  if(newHave<MIN_NEW){
-    var need=MIN_NEW-newHave;
-    var extraU=bucket.unseen.slice(limU);
-    for(var ei=0;ei<extraU.length&&need>0;ei++){
-      if(!geM(extraU[ei].id)){result.push(extraU[ei]);need--}
-    }
+  if(result.length<SESSION_SIZE){
+    var used={};result.forEach(function(q){used[String(q.id)]=1});
+    var rest=pool.filter(function(q){return !used[String(q.id)]});
+    shuffle(rest);
+    for(var i=0;i<rest.length&&result.length<SESSION_SIZE;i++)result.push(rest[i]);
   }
-  // Trim to SESSION_SIZE, keeping new-first
-  if(result.length>SESSION_SIZE){
-    var keep=[],extra=[];
-    result.forEach(function(q){if(keep.length<SESSION_SIZE&&!geM(q.id))keep.push(q);else extra.push(q)});
-    for(var ei=0;ei<extra.length&&keep.length<SESSION_SIZE;ei++)keep.push(extra[ei]);
-    result=keep;
-  }
-  // Overflow: append remaining review questions if slots left
-  var overflow=[];
-  if(o.length>limO)overflow=overflow.concat(o.slice(limO));
-  if(r.length>limR)overflow=overflow.concat(r.slice(limR));
-  if(l.length>limL)overflow=overflow.concat(l.slice(limL));
-  if(w.length>limW)overflow=overflow.concat(w.slice(limW));
-  if(overflow.length>0&&result.length<SESSION_SIZE){
-    var usedIds={};result.forEach(function(q){usedIds[String(q.id)]=1});
-    overflow=overflow.filter(function(q){return !usedIds[String(q.id)]});
-    overflow.sort(function(a,b){return kwWeakness(topicKey(b))-kwWeakness(topicKey(a))});
-    var slots=SESSION_SIZE-result.length;
-    result=result.concat(overflow.slice(0,slots));
-  }
-  S=result;
+  S=result.slice(0,SESSION_SIZE);
   I=0;K=0;B=0;U=0;A={};WW={};WX=[];R=Date.now();_rwtSkip=0;
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.getElementById('pageQuiz').classList.add('active');
@@ -1446,13 +1419,13 @@ function advFallback(rt){
 }
 
 function eQ(){
-  var t=K+B+U;
+  var t=K+B;
   document.getElementById('sTotal').textContent=t;
   document.getElementById('sOk').textContent=K;
-  document.getElementById('sBad').textContent=B+U;
+  document.getElementById('sBad').textContent=B;
   document.getElementById('sRate').textContent=t>0?Math.round(K/t*100)+'%':'0%';
 
-  var d=GS(),rc=d.w.slice(-Math.min(B+U,30));
+  var d=GS(),rc=d.w.slice(-Math.min(Math.max(B,U),30));
   var tc={};
   rc.forEach(function(w){
     var q=Q.find(function(qq){return qq.id==w.id});if(!q)return;
@@ -1474,7 +1447,7 @@ function eQ(){
   var errorsToSend = WX||[];
 
   var summaryPrompt='你是一位法考辅导老师。学生刚完成一轮刷题，请根据本次做题数据，给出针对本轮表现的简短建议（200字内）：\n'+
-    '做题总数：'+t+' | 正确：'+K+' | 错误：'+(B+U)+' | 正确率：'+Math.round(t>0?K/t*100:0)+'%\n'+
+    '做题总数：'+t+' | 正确：'+K+' | 错误：'+B+'（跳过：'+U+'） | 正确率：'+Math.round(t>0?K/t*100:0)+'%\n'+
     '科目：'+sessionSubjects.join('、')+'\n'+
     '错题知识点：'+errorsToSend.slice(-10).map(function(e){return e.topic}).join('、')+'\n'+
     '请仅针对本轮刷题回复：1.本轮表现评估（一句话） 2.本轮暴露的知识薄弱点 3.下次刷题的具体改进方向';
