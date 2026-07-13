@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d14">
 <title>爱题库</title>
+<link rel="manifest" href="manifest.json">">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>利群 · 客观题</title>
@@ -309,6 +313,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .p-ring-card{background:#060608;border-color:#111118}
 .dark .p-ring-card circle:first-of-type{stroke:#1a1a28}
 .dark .p-ring-num{color:#d8dae0}
+.dark .p-line line{stroke:#1a1a28}
 .p-line{flex:1;min-width:0}
 @media(max-width:680px){
   .p-ring-card{padding:10px 12px;gap:12px}
@@ -1242,11 +1247,11 @@ function sendChat(cid){
   fetch(DEEPSEEK_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-v4-pro',messages:messages,temperature:0.5,max_tokens:300,stream:false})
+    body:JSON.stringify({model:'deepseek-v4-pro',messages:messages,temperature:0.5,max_tokens:800,stream:false})
   }).then(function(r){return r.json()}).then(function(d){
     inp.disabled=false;
     var reply=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
-    // V4 Pro sometimes returns empty; retry with chat if empty
+    // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
       history.push({role:'system',content:'你是法考辅导老师，请简洁回答学生的问题'});
@@ -1259,13 +1264,13 @@ function sendChat(cid){
     msgsEl.innerHTML+='<div class="chat-msg ai">'+fmtReply(reply||'暂无回复')+'</div>';
     msgsEl.scrollTop=msgsEl.scrollHeight;
   }).catch(function(e){
-    // V4 Pro failed or returned empty → retry with deepseek-chat
+    // Pro 空/失败 → 降级 chat 重试
+    inp.disabled=false;
     fetch(DEEPSEEK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-      body:JSON.stringify({model:'deepseek-chat',messages:messages,temperature:0.5,max_tokens:300,stream:false})
+      body:JSON.stringify({model:'deepseek-chat',messages:messages,temperature:0.5,max_tokens:800,stream:false})
     }).then(function(r){return r.json()}).then(function(d2){
-      inp.disabled=false;
       var reply=(d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||'';
       history.push({role:'user',content:msg});
       history.push({role:'assistant',content:reply||'暂无回复'});
@@ -1274,7 +1279,6 @@ function sendChat(cid){
       msgsEl.innerHTML+='<div class="chat-msg ai">'+fmtReply(reply||'暂无回复')+'</div>';
       msgsEl.scrollTop=msgsEl.scrollHeight;
     }).catch(function(){
-      inp.disabled=false;
       var lel=document.getElementById(cid+'-loading');if(lel)lel.remove();
       msgsEl.innerHTML+='<div class="chat-msg ai" style="color:#c62828">发送失败，请重试</div>';
     });
@@ -1602,7 +1606,7 @@ function openSyncSettings(){
   var dk=localStorage.getItem('deepseekKey')||'';
   h+='<div style="margin:12px 0;border-top:1px solid #eee;padding-top:10px"><p style="font-size:12px;color:#999;margin:0 0 4px">DeepSeek API Key（用于AI分析，不填则无AI分析）</p>';
   h+='<input id="deepseekKeyInput" value="'+dk.replace(/"/g,'&quot;')+'" placeholder="sk-..." style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:4px">';
-  h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px">追问用 V4 Pro · Topic/总结/解析用 V4 Flash</p><div style="border-top:1px solid #eee;margin:8px 0"></div>';
+  h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px">追问用 V4 Pro · 其他用 deepseek-chat</p><div style="border-top:1px solid #eee;margin:8px 0"></div>';
   h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4d6bfe">获取 Key</a></p></div>';
   h+='<div style="text-align:right;margin-top:12px"><button class="btn btn-gray" onclick="exportData()" style="padding:5px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:5px 12px;font-size:11px;margin-left:6px">导入数据</button></div>';
   h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-gray" onclick="closeDetail()" style="padding:5px 16px;font-size:12px;margin-right:8px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:5px 16px;font-size:12px">保存</button></div>';
@@ -1668,12 +1672,14 @@ function rP(){
       pts.push(p);if(p>maxPct)maxPct=p;
     });
     maxPct=Math.max(maxPct,50);
-    var w=280,h=80,padL=30,padR=10,padT=10,padB=18;
+    var w=240,h=70,padL=28,padR=8,padT=18,padB=16;
     var cw=w-padL-padR,ch=h-padT-padB;
     var svg='<svg class="p-line" viewBox="0 0 '+w+' '+h+'">';
+    // Grid line
+    svg+='<line x1="'+padL+'" y1="'+(padT+ch)+'" x2="'+(padL+cw)+'" y2="'+(padT+ch)+'" stroke="#e8ecf0" stroke-width="0.5"/>';
     // Y axis labels
-    svg+='<text x="8" y="'+padT+'" font-size="9" fill="#999">'+Math.round(maxPct)+'%</text>';
-    svg+='<text x="8" y="'+(padT+ch)+'" font-size="9" fill="#999">0%</text>';
+    svg+='<text x="8" y="'+(padT+5)+'" font-size="9" fill="#999">'+Math.round(maxPct)+'%</text>';
+    svg+='<text x="8" y="'+(padT+ch+3)+'" font-size="9" fill="#999">0%</text>';
     // line
     if(pts.length>1){
       var path='';
@@ -1688,6 +1694,7 @@ function rP(){
         var x=padL+(i/(pts.length-1))*cw;
         var y=padT+ch-(p/maxPct)*ch;
         svg+='<circle cx="'+Math.round(x)+'" cy="'+Math.round(y)+'" r="3" fill="#4d6bfe"/>';
+        svg+='<text x="'+Math.round(x)+'" y="'+(Math.round(y)-6)+'" text-anchor="middle" font-size="8" font-weight="500" fill="#4d6bfe">'+Math.round(p)+'%</text>';
       });
       // date labels
       trendDays.forEach(function(d,i){
@@ -1697,7 +1704,7 @@ function rP(){
       });
     }
     svg+='</svg>';
-    document.getElementById('pMetrics').innerHTML+='<div class="p-card" style="grid-column:1/-1;padding:10px 14px;display:flex;align-items:center;gap:14px"><span class="p-l" style="flex-shrink:0;font-size:11px;writing-mode:vertical-lr;margin:0">近7天趋势</span>'+svg+'</div>';
+    document.getElementById('pMetrics').innerHTML+='<div class="p-card" style="grid-column:1/-1;padding:8px 12px;display:flex;align-items:center;gap:10px"><span class="p-l" style="flex-shrink:0;font-size:10px;writing-mode:vertical-lr;margin:0">近7天</span>'+svg+'</div>';
   }
 
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
@@ -2250,8 +2257,8 @@ document.addEventListener('keydown',function(e){
   var qArea=document.getElementById('quizLeft');
   if(!qArea)return;
   var key=e.key;
-  // QWER: 选选项
-  var keyMap={q:0,w:1,e:2,r:3};
+  // ABCD: 选选项
+  var keyMap={a:0,b:1,c:2,d:3};
   var idx=keyMap[key.toLowerCase()];
   if(idx!==undefined){
     var submitBtn=document.getElementById('btnSubmit');
@@ -2314,6 +2321,9 @@ function importData(){
   input.click();
 }
 
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
 </script>
 </body>
 </html>
