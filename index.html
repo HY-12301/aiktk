@@ -314,7 +314,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .p-ring-card circle:first-of-type{stroke:#1a1a28}
 .dark .p-ring-num{color:#d8dae0}
 .dark .p-line line{stroke:#1a1a28}
-.p-line{flex:1;min-width:0}
+.p-line{width:240px;height:auto;flex-shrink:0}
 @media(max-width:680px){
   .p-ring-card{padding:10px 12px;gap:12px}
   .p-ring{width:80px;height:80px}
@@ -732,7 +732,7 @@ var WW={}; // wrong weights
 
 function LS(){try{return JSON.parse(localStorage.getItem('s')||'{}')}catch(e){return{}}}
 function SS(d){localStorage.setItem('s',JSON.stringify(d))}
-function GS(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};return d}
+function GS(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];return d}
 
 function geM(qid){var d=GS();return d.mem[String(qid)]||null}
 function seM(qid,s){
@@ -1361,6 +1361,11 @@ function submitAnswer(){
   var hi=d2.h.findIndex(function(h){return h.date.substring(0,10)===today});
   if(hi!==-1){d2.h[hi].t++;if(ok)d2.h[hi].k++}else{d2.h.push({date:new Date().toISOString(),t:1,k:ok?1:0,b:ok?0:1})}
   if(d2.h.length>50)d2.h=d2.h.slice(-50);
+  // 今日新学：每道作答记一条（跳过不记）
+  d2.todayLog=d2.todayLog||[];
+  d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:new Date().toISOString()});
+  var _cut=new Date();_cut.setDate(_cut.getDate()-2);
+  d2.todayLog=d2.todayLog.filter(function(e){return new Date(e.time).getTime()>_cut.getTime()});
   SS(d2);
   var tp=topicName(q);
   if(!ok)WW[tp]=(WW[tp]||0)+1;
@@ -1625,6 +1630,17 @@ function saveSyncToken(){
 
 function clearErrors(){var d=GS();var ids=d.w.map(function(e){return String(e.id)});d.w=[];ids.forEach(function(id){delete d.mem[id]});SS(d);rEB()}
 
+function todayNewStudy(law){
+  var d=GS(),log=d.todayLog||[];
+  var today=new Date().toISOString().substring(0,10),set={};
+  log.forEach(function(e){
+    if(e.time.substring(0,10)!==today)return;
+    if(law&&e.law!==law)return;
+    set[e.id]=1;
+  });
+  return Object.keys(set).length;
+}
+
 function rP(){
   var d=GS(),t=d.t||0,k=d.k||0;
   var doneIds=d.done||{},doneCount=Object.keys(doneIds).length;
@@ -1646,6 +1662,7 @@ function rP(){
   // === 环形进度 + 侧数字 ===
   var ringR=44,ringC=2*Math.PI*ringR,ringDash=overallPct!==null?ringC*(1-overallPct/100):ringC;
   var ratePct=t>0?Math.round(k/t*100)+'%':'-';
+  var todayNew=todayNewStudy();
   var topHTML='<div class="p-ring-card"><svg class="p-ring" viewBox="0 0 120 120">'+
     '<circle cx="60" cy="60" r="'+ringR+'" fill="none" stroke="#e8ecf0" stroke-width="10"/>'+
     '<circle cx="60" cy="60" r="'+ringR+'" fill="none" stroke="#4d6bfe" stroke-width="10"'+
@@ -1655,7 +1672,8 @@ function rP(){
     '<text x="60" y="76" text-anchor="middle" font-size="11" fill="#999">整体进度</text></svg>'+
     '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+t.toLocaleString()+'</span><span class="p-ring-lbl">做题总数</span></div>'+
     '<div class="p-ring-item"><span class="p-ring-num">'+k.toLocaleString()+'</span><span class="p-ring-lbl">正确数</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(t>0?(k/t>=0.6?'#43a047':k/t>=0.4?'#ff9800':'#e53935'):'#999')+'">'+ratePct+'</span><span class="p-ring-lbl">正确率</span></div></div></div>';
+    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(t>0?(k/t>=0.6?'#43a047':k/t>=0.4?'#ff9800':'#e53935'):'#999')+'">'+ratePct+'</span><span class="p-ring-lbl">正确率</span></div>'+
+    '<div class="p-ring-item"><span class="p-ring-num" style="color:#4d6bfe">'+todayNew+'</span><span class="p-ring-lbl">今日新学</span></div></div></div>';
   document.getElementById('pMetrics').innerHTML=topHTML;
   // 近7天折线图
   var dayRates={};
@@ -1672,14 +1690,11 @@ function rP(){
       pts.push(p);if(p>maxPct)maxPct=p;
     });
     maxPct=Math.max(maxPct,50);
-    var w=240,h=70,padL=28,padR=8,padT=18,padB=16;
+    var w=240,h=70,padL=8,padR=8,padT=18,padB=16;
     var cw=w-padL-padR,ch=h-padT-padB;
     var svg='<svg class="p-line" viewBox="0 0 '+w+' '+h+'">';
     // Grid line
     svg+='<line x1="'+padL+'" y1="'+(padT+ch)+'" x2="'+(padL+cw)+'" y2="'+(padT+ch)+'" stroke="#e8ecf0" stroke-width="0.5"/>';
-    // Y axis labels
-    svg+='<text x="8" y="'+(padT+5)+'" font-size="9" fill="#999">'+Math.round(maxPct)+'%</text>';
-    svg+='<text x="8" y="'+(padT+ch+3)+'" font-size="9" fill="#999">0%</text>';
     // line
     if(pts.length>1){
       var path='';
@@ -1688,7 +1703,7 @@ function rP(){
         var y=padT+ch-(p/maxPct)*ch;
         path+=(i===0?'M':'L')+Math.round(x)+' '+Math.round(y)+' ';
       });
-      svg+='<polyline points="'+path+'" fill="none" stroke="#4d6bfe" stroke-width="2" stroke-linejoin="round"/>';
+      svg+='<path d="'+path+'" fill="none" stroke="#4d6bfe" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
       // dots
       pts.forEach(function(p,i){
         var x=padL+(i/(pts.length-1))*cw;
@@ -1775,18 +1790,21 @@ function togglePDetail(kk){
   var totalMem=phases.exponential+phases.relearning||1;
   var mcolors={exponential:'#43a047',relearning:'#ff9800'};
   var mnames={exponential:'巩固',relearning:'重学'};
-  var memHTML='<div class="p-dmem">'+['exponential','relearning'].map(function(k){
+  var subjToday=todayNewStudy(sj.name);
+  var todayChunk='<div class="mchunk" style="background:#4d6bfe15;border:1px solid #4d6bfe50"><div class="mn" style="color:#4d6bfe">'+subjToday+'</div><div class="ml">今日</div></div>';
+  var memHTML='<div class="p-dmem">'+todayChunk+['exponential','relearning'].map(function(k){
     var c=mcolors[k],n=mnames[k],v=phases[k],pct=Math.round(v/totalMem*100);
     return '<div class="mchunk" style="background:'+c+'15;border:1px solid '+c+'50"><div class="mn" style="color:'+c+'">'+v+'</div><div class="ml">'+n+' ('+pct+'%)</div></div>';
   }).join('')+'</div>';
   var kw=GS().kw||{},weakList=[];
-  Object.keys(kw).forEach(function(tk){if(tk.indexOf(sj.name+'.')===0){var rec=kw[tk];if(rec&&rec.t>=2)weakList.push({topic:tk.slice(tk.indexOf('.')+1),wr:rec.w/rec.t,total:rec.t,wrong:rec.w,ts:rec.ts})}});
+  var _todayStr=new Date().toDateString();
+  Object.keys(kw).forEach(function(tk){if(tk.indexOf(sj.name+'.')===0){var rec=kw[tk];if(rec&&rec.t>=2&&rec.ts&&new Date(rec.ts).toDateString()===_todayStr)weakList.push({topic:tk.slice(tk.indexOf('.')+1),wr:rec.w/rec.t,total:rec.t,wrong:rec.w,ts:rec.ts})}});
   weakList.sort(function(a,b){return b.wr-a.wr});weakList=weakList.slice(0,8);
   var weakHTML=weakList.length?'<div class="p-dweak">'+weakList.map(function(w,i){
     var days=w.ts?Math.floor((Date.now()-new Date(w.ts).getTime())/86400000):0;
     return '<div class="wkrow"><span class="wkn">'+(i+1)+'. '+w.topic+'</span><span class="wkr">'+Math.round(w.wr*100)+'%</span><span class="wkt">'+w.wrong+'/'+w.total+'题</span><span class="wks">'+(days>0?days+'天前':'今天')+'</span></div>';
-  }).join('')+'</div>':'<div style="color:#999;font-size:11px">暂无数据，继续刷题后显示</div>';
-  var h='<div class="p-dt"><span>'+sj.name+'</span> · 已做 '+sj.dd+'/'+sj.tt+' 题</div>'+memHTML+'<div class="p-dt" style="margin-top:4px">薄弱知识点 Top 8</div>'+weakHTML;
+  }).join('')+'</div>':'<div style="color:#999;font-size:11px">今日暂无薄弱知识点</div>';
+  var h='<div class="p-dt"><span>'+sj.name+'</span> · 已做 '+sj.dd+'/'+sj.tt+' 题</div>'+memHTML+'<div class="p-dt" style="margin-top:4px">今日薄弱知识点</div>'+weakHTML;
   el.innerHTML=h;el.classList.add('show');
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
