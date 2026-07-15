@@ -731,8 +731,10 @@ var T={1:'单项选择题',2:'多项选择题',3:'不定项选择题'};
 var WW={}; // wrong weights
 
 function LS(){try{return JSON.parse(localStorage.getItem('s')||'{}')}catch(e){return{}}}
-function SS(d){localStorage.setItem('s',JSON.stringify(d))}
-function GS(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];return d}
+var STATE=null;
+function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];return d}
+function SS(d){STATE=d;try{localStorage.setItem('s',JSON.stringify(d))}catch(e){}}
+function GS(){if(!STATE)STATE=loadState();return STATE}
 
 function geM(qid){var d=GS();return d.mem[String(qid)]||null}
 function seM(qid,s){
@@ -2330,7 +2332,7 @@ function importData(){
     reader.onload=function(ev){
       try{
         var data=JSON.parse(ev.target.result);
-        localStorage.setItem('s',JSON.stringify(data));
+        SS(data);
         alert('导入成功！请刷新页面查看。');
       }catch(e){alert('文件格式错误，请选择正确的备份文件');}
     };

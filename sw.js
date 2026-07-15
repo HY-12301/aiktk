@@ -1,4 +1,6 @@
-var CACHE = 'aiktk-v1';
+var CACHE = 'aiktk-v2';
+// 保留题库解析缓存(ai-questions)，避免每次重新解析 40MB
+var KEEP = [CACHE, 'ai-questions'];
 var FILES = [
   './',
   './index.html',
@@ -8,6 +10,7 @@ var FILES = [
 ];
 
 self.addEventListener('install', function(e) {
+  self.skipWaiting(); // 新 SW 安装后立即激活，不等旧页面关闭
   e.waitUntil(
     caches.open(CACHE).then(function(cache) {
       return cache.addAll(FILES.map(function(f) {
@@ -17,28 +20,49 @@ self.addEventListener('install', function(e) {
   );
 });
 
-self.addEventListener('fetch', function(e) {
-  // For API calls, go to network
-  if (e.request.url.includes('api.deepseek.com') || e.request.url.includes('api.github.com')) {
-    return;
-  }
-  e.respondWith(
-    caches.match(e.request).then(function(r) {
-      return r || fetch(e.request).then(function(resp) {
-        if (resp.ok) {
-          var clone = resp.clone();
-          caches.open(CACHE).then(function(c) {c.put(e.request, clone)});
-        }
-        return resp;
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    self.clients.claim().then(function() {
+      return caches.keys().then(function(keys) {
+        return Promise.all(keys.filter(function(k) {
+          return KEEP.indexOf(k) === -1;
+        }).map(function(k) { return caches.delete(k); }));
       });
     })
   );
 });
 
-self.addEventListener('activate', function(e) {
-  e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(keys.filter(function(k) {return k !== CACHE}).map(function(k) {return caches.delete(k)}));
+self.addEventListener('fetch', function(e) {
+  var url = e.request.url;
+  // API 调用直接走网络
+  if (url.indexOf('api.deepseek.com') !== -1 || url.indexOf('api.github.com') !== -1) return;
+
+  // 页面(navigate 或 index.html) 用 network-first：保证每次拿到最新页面
+  if (e.request.mode === 'navigate' || url.indexOf('index.html') !== -1) {
+    e.respondWith(
+      fetch(e.request).then(function(resp) {
+        if (resp && resp.ok) {
+          var clone = resp.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+        }
+        return resp;
+      }).catch(function() {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+
+  // 其余资源(题库 gz 等) cache-first：避免重复下载
+  e.respondWith(
+    caches.match(e.request).then(function(r) {
+      return r || fetch(e.request).then(function(resp) {
+        if (resp.ok) {
+          var clone = resp.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+        }
+        return resp;
+      });
     })
   );
 });
