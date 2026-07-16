@@ -1784,7 +1784,7 @@ function rW(q){
   var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
   if(ei===-1){
     d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-  } else {d.w[ei].streak=0}
+  } else {d.w[ei].streak=Math.max(0,(d.w[ei].streak||0)-1)}
   d.done[q.id]={law:q.lawName,ok:false,time:new Date().toISOString()};
   SS(d);
   debounceSync();
@@ -2413,7 +2413,7 @@ function commitExamQ(q){
   if(!ok){
     var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
     if(ei===-1)d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-    else d.w[ei].streak=0;
+    else d.w[ei].streak=Math.max(0,(d.w[ei].streak||0)-1);
   }
   updateMemState(q,ok);
   upKW(q,ok);
@@ -2749,7 +2749,7 @@ function endExam(){
     if(!ok){
       var ei=dd.w.findIndex(function(w){return String(w.id)===String(q.id)});
       if(ei===-1)dd.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-      else dd.w[ei].streak=0;
+      else dd.w[ei].streak=Math.max(0,(dd.w[ei].streak||0)-1);
     }
     updateMemState(q,ok);
     upKW(q,ok);
