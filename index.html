@@ -26,10 +26,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .page.active{display:block}
 
 /* Home Cards */
-.home-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;max-width:1200px;margin:0 auto}
-.home-card{background:#fff;border-radius:12px;padding:20px 22px;border:0.5px solid #e8ecf0;transition:border-color .15s}
+.home-cards{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;max-width:1240px;margin:0 auto}
+.home-card{background:#fff;border-radius:12px;padding:9px 16px;border:0.5px solid #e8ecf0;transition:border-color .15s}
 .home-card:hover{border-color:#b0bcd0}
-.hcard-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-bottom:8px}
+.hcard-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-bottom:4px}
 .home-card h3{font-size:15px;font-weight:500;color:#3c4650;margin:0 0 4px}
 .subj-split{margin-left:auto;display:flex;gap:9px;align-items:center;font-size:10px;white-space:nowrap}
 .subj-split i{font-style:normal;color:#ccc;margin:0 1px;font-weight:400}
@@ -37,13 +37,13 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .subj-split span{font-weight:400;font-size:10px}
 .sp-zt{color:#ff7043}.sp-zt b{color:#ff7043}
 .sp-mc{color:#43a047}.sp-mc b{color:#43a047}
-.hcard-desc{font-size:12px;color:#999;margin:0 0 12px;line-height:1.5}
-.src-toggle{display:flex;gap:0;margin-bottom:14px}
+.hcard-desc{font-size:12px;color:#999;margin:0 0 6px;line-height:1.5}
+.src-toggle{display:flex;gap:0;margin-bottom:8px}
 .src-toggle span{padding:5px 20px;font-size:12px;border:0.5px solid #d0d4dc;cursor:pointer;background:#fff;color:#888;flex:1;text-align:center;transition:all .12s}
 .src-toggle span:first-child{border-radius:6px 0 0 6px}
 .src-toggle span:last-child{border-radius:0 6px 6px 0}
 .src-toggle span.on{background:#4d6bfe;color:#fff;border-color:#4d6bfe}
-.subj-tags{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.subj-tags{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .subj-tag{position:relative;overflow:hidden;display:flex;flex-direction:column;padding:0;border-radius:6px;border:0.5px solid #e8ecf0;cursor:pointer;font-size:11px;-webkit-user-select:none;user-select:none}
 .subj-tag:hover{border-color:#b0bcd0}
 .subj-tag.sel{border-color:#4d6bfe;background:#f4f6ff}
@@ -52,7 +52,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .sb-mc{position:absolute;left:0;bottom:0;height:50%;width:0;background:rgba(67,160,71,.22);transition:width .3s}
 .dark .sb-zt{background:rgba(255,112,67,.32)}
 .dark .sb-mc{background:rgba(67,160,71,.32)}
-.subj-row{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding:6px 8px;min-height:23px}
+.subj-row{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding:4px 8px;min-height:19px}
 .subj-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .subj-name{font-weight:500;color:#3c4650}
 .sp-zt{margin-left:auto;color:#ff7043}
@@ -395,7 +395,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 
   /* --- Home Cards: stack vertically --- */
   .home-cards{grid-template-columns:1fr;gap:10px}
-  .home-card{padding:16px 16px}
+  .home-card{padding:11px 16px}
   .subj-tags{grid-template-columns:1fr 1fr;gap:5px}
   .subj-tag{padding:6px 7px;font-size:10px}
   .subj-name{min-width:30px;font-size:11px}
@@ -628,7 +628,6 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 <!-- Home -->
 <div class="page active" id="pageHome">
   <div class="goalbar" id="goalBar"></div>
-  <div class="reco-card" id="recoCard"></div>
   <div class="home-cards">
     <!-- 自由刷题 -->
     <div class="home-card" id="cardFree">
@@ -643,7 +642,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <input type="checkbox" id="srcMC" checked style="display:none">
       <div class="subj-tags" id="subjTags">
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
+      <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn btn-gray" onclick="selAll(true)" style="flex:1;font-size:11px">全选</button>
         <button class="btn btn-gray" onclick="selAll(false)" style="flex:1;font-size:11px">清空</button>
         <button class="btn btn-green" id="startBtn" style="flex:2;font-size:12px">开始刷题</button>
@@ -662,6 +661,14 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <div class="hcard-icon" style="background:#fbe9e7;color:#e53935">3</div>
       <h3>智能组卷</h3>
       <p class="hcard-desc">100题/150分 · 计时180分 · 模拟真实法考</p>
+    </div>
+
+    <!-- 今日推荐（列序号4） -->
+    <div class="home-card" id="cardReco">
+      <div class="hcard-icon" style="background:#fff3e0;color:#ffa726">4</div>
+      <h3>今日推荐</h3>
+      <div id="recoBody" class="reco-body"></div>
+      <button class="btn btn-blue" id="recoBtn" style="margin-top:10px;width:100%;font-size:12px" onclick="startReco()">开始推荐</button>
     </div>
   </div>
   <div style="margin-top:14px;text-align:center">
@@ -1171,7 +1178,7 @@ function togSrc(type){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
     h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<div class="subj-row"><span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span><span class="subj-name">'+subMap[k]+'</span><span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span></div>';
-    h+='<div class="subj-row"><span class="subj-dot" style="background:#43a047"></span><span class="sp-mc"><b id="mcD'+k+'">0</b><i>/</i><span id="mcT'+k+'">—</span></span></div>';
+    h+='<div class="subj-row"><span class="sp-mc"><b id="mcD'+k+'">0</b><i>/</i><span id="mcT'+k+'">—</span></span></div>';
     h+='<input type="checkbox" id="sub'+k+'" style="display:none">';
     h+='</div>';
   });
@@ -2857,7 +2864,7 @@ function editGoal(){
   g.examDate=d1;g.daily=parseInt(d2)||60;saveGoal(g);
 }
 function renderHomeReco(){
-  var el=document.getElementById('recoCard');if(!el)return;
+  var el=document.getElementById('recoBody');if(!el)return;
   var d=GS();
   var due=0,weak=0;
   var mem=d.mem||{},nowT=Date.now();
@@ -2865,8 +2872,7 @@ function renderHomeReco(){
   Object.keys(mem).forEach(function(id){var m=mem[id];if(m&&m.totalWrong&&m.totalWrong>=2)weak++;});
   var hint='按你的掌握度自动组卷（优先复习到期与薄弱内容）';
   if(Q.length)hint='约 '+due+' 题待复习 · '+weak+' 个易错点需巩固';
-  el.innerHTML='<div class="reco-ico">★</div><div class="reco-body"><div class="reco-t">今日推荐</div>'+
-    '<div class="reco-d">'+hint+'</div></div><button class="btn btn-blue" onclick="startReco()">开始推荐</button>';
+  el.innerHTML='<div class="reco-t">今日推荐</div><div class="reco-d">'+hint+'</div>';
 }
 function startReco(){
   ensureLoaded(function(){
