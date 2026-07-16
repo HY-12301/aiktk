@@ -484,7 +484,6 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .gb-row{color:#cdd3dc}
 .gb-sub{font-size:12px;color:#888;margin-top:2px}
 .gb-edit{font-size:12px;color:#4d6bfe;cursor:pointer;padding:6px 10px;border:1px solid #d7e0ff;border-radius:8px}
-.gb-streak{margin-top:6px;font-size:11px;color:#ff7043;font-weight:600}
 .dark .gb-edit{border-color:#324063;color:#7e96ff}
 .reco-card{display:flex;align-items:center;gap:12px;background:#f5f8ff;border:1px solid #e2e9ff;border-radius:14px;padding:14px 16px;margin-bottom:16px}
 .dark .reco-card{background:#1a2233;border-color:#2a3550}
@@ -602,7 +601,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
     <a href="javascript:;" class="active" data-tab="home" onclick="switchTab('home')">刷题</a>
     <a href="javascript:;" data-tab="marks" onclick="switchTab('marks')">标记</a>
     <a href="javascript:;" data-tab="errorbook" onclick="switchTab('errorbook')">错题</a>
-    <a href="javascript:;" data-tab="progress" onclick="switchTab('progress')">数据</a>
+    <a href="javascript:;" data-tab="progress" onclick="switchTab('progress')">统计</a>
   </div>
   <span id="syncBadge" onclick="openSyncSettings()" style="position:absolute;right:20px;font-size:11px;color:#ccc;cursor:pointer" title="点击设置云端同步"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg></span>
 </div>
@@ -872,10 +871,7 @@ var WW={}; // wrong weights
 
 function LS(){try{return JSON.parse(localStorage.getItem('s')||'{}')}catch(e){return{}}}
 var STATE=null;
-function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];d.firstSeen=d.firstSeen||{};
-  // 兼容旧数据：把已存在 done 的题标记为“很早以前已学”，避免升级后首日把旧题误算为今日新学
-  if(Object.keys(d.firstSeen).length===0&&d.done&&Object.keys(d.done).length){Object.keys(d.done).forEach(function(id){d.firstSeen[id]={date:'2000-01-01',law:(d.done[id]&&d.done[id].law)||''}});}
-  d.notes=d.notes||{};d.flags=d.flags||{};return d}
+function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];d.notes=d.notes||{};d.flags=d.flags||{};return d}
 function SS(d){STATE=d;try{localStorage.setItem('s',JSON.stringify(d))}catch(e){if(!SS._q){SS._q=true;console.error('本地存储写入失败(可能已满):',e);setTimeout(function(){alert('⚠️ 本地存储空间已满，部分学习进度可能无法保存。建议导出备份或清理浏览器数据。')},400)}}}
 function GS(){if(!STATE)STATE=loadState();return STATE}
 
@@ -907,9 +903,6 @@ function kwWeakness(tk){
   return wr*(1+days/14);
 }
 function nowISO(){return new Date().toISOString()}
-// 本地日期（GMT+8），用于按天统计，避免 toISOString() 的 UTC 时区偏差
-function ldKey(dt){dt=dt||new Date();var y=dt.getFullYear();var m=('0'+(dt.getMonth()+1)).slice(-2);var d=('0'+dt.getDate()).slice(-2);return y+'-'+m+'-'+d;}
-function todayKey(){return ldKey(new Date());}
 function daysBetween(a,b){return Math.floor((new Date(b).getTime()-new Date(a).getTime())/86400000)}
 
 // ===== 跨设备云端同步 (GitHub Gist) =====
@@ -983,7 +976,6 @@ function pullGist(id){
         m.topicFixes=mergeObj(local.topicFixes||{},remote.topicFixes||{});
         m.notes=mergeObj(local.notes||{},remote.notes||{});
         m.flags=mergeObj(local.flags||{},remote.flags||{});
-        m.firstSeen=mergeObj(local.firstSeen||{},remote.firstSeen||{});
         SS(m);
         setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>','已同步');
       }else{setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>','最新');}
@@ -1099,7 +1091,7 @@ function idbPut(data){
 function loadData(cb, errCb){
   function got(d){ idbPut(d); cb(d); }
   function doFetch(c,err){
-    fetch('https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz').then(function(r){
+    fetch('all_questions.json.gz').then(function(r){
       if(!r.ok)throw new Error('HTTP '+r.status);
       try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
       catch(e){
@@ -1114,17 +1106,10 @@ function loadData(cb, errCb){
       if(c){c.put('q',new Response(txt))}
       got(data);
     }).catch(function(e1){
-      fetch('all_questions.json.gz').then(function(r){
+      fetch('all_questions.json').then(function(r){
         if(!r.ok)throw new Error('HTTP '+r.status);
-        try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
-        catch(e){
-          return r.arrayBuffer().then(function(buf){
-            var arr=new Uint8Array(buf),ds=new DecompressionStream('gzip');
-            var w=ds.writable.getWriter();w.write(arr);w.close();
-            return new Response(ds.readable).text();
-          });
-        }
-      }).then(function(txt){got(JSON.parse(txt))}).catch(function(e2){err(err||e2||e1)});
+        return r.json();
+      }).then(got).catch(function(e2){err(err||e2||e1)});
     });
   }
   // 优先读 IndexedDB 已解析对象（二次打开近乎零解析）
@@ -1256,7 +1241,6 @@ function doS(s,z,m){
   // v20260712-shuffle-check: confirmed
   S=result.slice(0,SESSION_SIZE);
   I=0;K=0;B=0;U=0;A={};WW={};WX=[];R=Date.now();_rwtSkip=0;
-  hideTimer();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.getElementById('pageQuiz').classList.add('active');
   document.getElementById('qTotal').textContent=S.length;
@@ -1570,17 +1554,14 @@ function submitAnswer(){
     var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
     if(ei!==-1){d.w[ei].streak=(d.w[ei].streak||0)+1;if(d.w[ei].streak>=3)d.w.splice(ei,1)}
   } else {B++;rW(q)}
-  // 实时统计：每答一题写入今日趋势（使用本地日期，避免 UTC 时区偏差）
-  var d2=GS(),today=todayKey();
-  d2.firstSeen=d2.firstSeen||{};
-  var isNew=!d2.firstSeen[q.id];
-  if(isNew)d2.firstSeen[q.id]={date:today,law:q.lawName};
-  var hi=d2.h.findIndex(function(h){return (h.date||'').substring(0,10)===today});
-  if(hi!==-1){d2.h[hi].t++;if(ok)d2.h[hi].k++}else{d2.h.push({date:today,t:1,k:ok?1:0,b:ok?0:1})}
+  // 实时统计：每答一题写入今日趋势
+  var d2=GS(),today=new Date().toISOString().substring(0,10);
+  var hi=d2.h.findIndex(function(h){return h.date.substring(0,10)===today});
+  if(hi!==-1){d2.h[hi].t++;if(ok)d2.h[hi].k++}else{d2.h.push({date:new Date().toISOString(),t:1,k:ok?1:0,b:ok?0:1})}
   if(d2.h.length>50)d2.h=d2.h.slice(-50);
-  // 今日新学：记录每日作答（用于“今日已学”统计）
+  // 今日新学：每道作答记一条（跳过不记）
   d2.todayLog=d2.todayLog||[];
-  d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:today});
+  d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:new Date().toISOString()});
   var _cut=new Date();_cut.setDate(_cut.getDate()-2);
     d2.todayLog=d2.todayLog.filter(function(e){return new Date(e.time).getTime()>_cut.getTime()});
     var tp=topicName(q);
@@ -1637,7 +1618,6 @@ function showSummary(){
     if(EXAM_TIMER){clearInterval(EXAM_TIMER);EXAM_TIMER=null;}
     eQ();
   }
-  hideTimer();
 }
 function advFallback(rt){
   if(rt>0.8)return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> 正确率很高！当前水平扎实，继续巩固薄弱环节即可。';
@@ -1823,13 +1803,12 @@ function saveSyncToken(){
 function clearErrors(){var d=GS();var ids=d.w.map(function(e){return String(e.id)});d.w=[];ids.forEach(function(id){delete d.mem[id]});SS(d);rEB()}
 
 function todayNewStudy(law){
-  var d=GS(),fs=d.firstSeen||{};
-  var today=todayKey(),set={};
-  Object.keys(fs).forEach(function(id){
-    var e=fs[id];
-    if(!e||e.date!==today)return;
+  var d=GS(),log=d.todayLog||[];
+  var today=new Date().toISOString().substring(0,10),set={};
+  log.forEach(function(e){
+    if(e.time.substring(0,10)!==today)return;
     if(law&&e.law!==law)return;
-    set[id]=1;
+    set[e.id]=1;
   });
   return Object.keys(set).length;
 }
@@ -2229,8 +2208,6 @@ function updateMemState(q,ok){
 
 var EXAM_START=0;
 function updateTimerEl(t,warn){var el=document.getElementById('qzTimer');if(el){el.textContent=t;el.classList.toggle('warn',!!warn);el.style.display='';}}
-// 隐藏计时器（清空计时并复位显示），用于进入自由刷题 / 交卷后
-function hideTimer(){if(EXAM_TIMER){clearInterval(EXAM_TIMER);EXAM_TIMER=null}var te=document.getElementById('qzTimer');if(te)te.style.display='none';}
 function unflag(id){var d=GS();if(d.flags)delete d.flags[String(id)];SS(d);debounceSync();}
 function quizFromFlags(){
   var d=GS();var ids=Object.keys(d.flags||{});
@@ -2472,7 +2449,6 @@ function doSmartExam(){
 
 function endExam(){
   clearInterval(EXAM_TIMER);EXAM_TIMER=null;
-  hideTimer();
   EXAM_MODE=false;
   var total=S.length,score=0,maxScore=0;
   S.forEach(function(q){
@@ -2662,17 +2638,9 @@ function renderGoalBar(){
   var days=Math.round((ed-today)/86400000);
   var left=days>0?days:0;
   var el=document.getElementById('goalBar');if(!el)return;
-  var d=GS();
-  // 连续学习天数（本地日期）
-  var dates={};(d.h||[]).forEach(function(s){dates[(s.date||'').substring(0,10)]=1});
-  var streak=0;var cur=new Date();cur.setHours(0,0,0,0);
-  if(!dates[ldKey(cur)])cur.setDate(cur.getDate()-1);
-  while(dates[ldKey(cur)]){streak++;cur.setDate(cur.getDate()-1);}
-  var todayDone=(d.todayLog&&d.todayLog.length)||0;
+  var d=GS();var todayDone=(d.todayLog&&d.todayLog.length)||0;
   var doneColor=todayDone>=g.daily?'#0dce7f':'#4d6bfe';
-  el.innerHTML='<div class="gb-left"><div class="gb-days">'+left+'</div><div class="gb-lbl">天后笔试</div>'+
-    (streak>0?'<div class="gb-streak">🔥 连续 '+streak+' 天</div>':'')+
-    '</div>'+
+  el.innerHTML='<div class="gb-left"><div class="gb-days">'+left+'</div><div class="gb-lbl">天后笔试</div></div>'+
     '<div class="gb-mid"><div class="gb-row">今日目标 <b>'+g.daily+'</b> 题</div>'+
     '<div class="gb-sub">今日已学 <b style="color:'+doneColor+'">'+todayDone+'</b> / '+g.daily+'</div></div>'+
     '<div class="gb-edit" onclick="editGoal()">设置目标</div>';
@@ -2712,6 +2680,10 @@ function renderProgressExtra(){
     return;
   }
   var d=GS();
+  var dates={};(d.h||[]).forEach(function(s){dates[(s.date||'').substring(0,10)]=1});
+  var streak=0;var cur=new Date();cur.setHours(0,0,0,0);
+  if(!dates[cur.toISOString().substring(0,10)])cur.setDate(cur.getDate()-1);
+  while(dates[cur.toISOString().substring(0,10)]){streak++;cur.setDate(cur.getDate()-1);}
   var t30=0,k30=0;(d.h||[]).forEach(function(s){var day=(s.date||'').substring(0,10);var dt=new Date(day);var ago=(Date.now()-dt.getTime())/86400000;if(ago<=30){t30+=s.t||0;k30+=s.k||0;}});
   var rate30=t30>0?Math.round(k30/t30*100):null;
   var rateAll=d.t>0?Math.round(d.k/d.t*100):null;
@@ -2737,6 +2709,7 @@ function renderProgressExtra(){
     examCard='<div class="p-card p-exam" style="grid-column:1/-1"><div class="ex-t">最近模考 · '+le.date.substring(0,10)+' · '+leRate+'%</div>'+subjRows+'</div>';
   }
   el.innerHTML=
+    '<div class="p-card p-streak"><div class="st-num">'+streak+'</div><div class="st-lbl">连续学习(天)</div></div>'+
     '<div class="p-card p-rate"><div class="rc-row"><span>近30天正确率</span><b>'+(rate30!=null?rate30+'%':'--')+'</b></div>'+
     '<div class="rc-row"><span>累计正确率</span><b>'+(rateAll!=null?rateAll+'%':'--')+'</b></div>'+
     '<div class="rc-bar"><div class="rc-fill" style="width:'+(rate30||0)+'%"></div></div>'+
