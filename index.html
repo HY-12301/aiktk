@@ -784,6 +784,16 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   <div class="modal-box" id="detailBox"></div>
 </div>
 
+<!-- Consolidate topics modal -->
+<div class="modal-overlay" id="consolidateModal">
+  <div class="modal-box" style="max-width:440px">
+    <h3 style="margin:0 0 10px">整理知识点</h3>
+    <div id="consProg" style="font-size:13px;color:#555;line-height:1.9"></div>
+    <div class="spinner" style="width:22px;height:22px;border-width:2px;margin:14px auto"></div>
+    <div style="text-align:right;margin-top:8px"><button class="btn btn-gray" onclick="CONSOLIDATE_CANCEL=true;closeConsolidateModal()">取消</button></div>
+  </div>
+</div>
+
 <!-- Smart exam modal -->
 <div class="modal-overlay" id="smartModal" onclick="if(event.target===this)closeSmart()">
   <div class="smart-box" id="smartBox">
@@ -878,7 +888,7 @@ var WW={}; // wrong weights
 
 function LS(){try{return JSON.parse(localStorage.getItem('s')||'{}')}catch(e){return{}}}
 var STATE=null;
-function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.todayLog=d.todayLog||[];d.firstSeen=d.firstSeen||{};
+function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.topicFixes=d.topicFixes||{};d.topicVocab=d.topicVocab||[];d.topicAlias=d.topicAlias||{};d.todayLog=d.todayLog||[];d.firstSeen=d.firstSeen||{};
   // 兼容旧数据：把已存在 done 的题标记为“很早以前已学”，避免升级后首日把旧题误算为今日新学
   if(Object.keys(d.firstSeen).length===0&&d.done&&Object.keys(d.done).length){Object.keys(d.done).forEach(function(id){d.firstSeen[id]={date:'2000-01-01',law:(d.done[id]&&d.done[id].law)||''}});}
   d.notes=d.notes||{};d.flags=d.flags||{};return d}
@@ -895,8 +905,10 @@ function seM(qid,s){
 function mkM(){return{ef:2.5,interval:0,reps:0,nextReview:null,lastReview:null,totalAttempts:0,totalWrong:0,phase:'new',learningStepIdx:0,reLearningStepIdx:0,prevInterval:0}}
 
 // Knowledge weight helpers — topic pre-computed offline
-function topicKey(q){var tf=GS().topicFixes;var id=String(q.id);if(tf[id])return q.lawName+'.'+(tf[id].split('.')[0]);return(q.topic||q.lawName+'.other').split('.').slice(0,2).join('.')}
-function topicName(q){var tf=GS().topicFixes;var id=String(q.id);if(tf[id])return tf[id].split('.')[0];return(q.topic||'').split('.')[1]||'--'}
+// 规范化：原始知识点文本 → 规范考点（依据 d.topicAlias 映射，未命中返回原值）
+function canonTopic(raw){if(!raw)return raw;raw=String(raw).split('.')[0];var al=GS().topicAlias||{};return al[raw]||raw;}
+function topicKey(q){var tf=GS().topicFixes;var id=String(q.id);if(tf[id])return q.lawName+'.'+canonTopic(tf[id]);var bt=(q.topic||q.lawName+'.other').split('.');var base=bt.slice(1).join('.')||bt[0]||'other';return q.lawName+'.'+canonTopic(base)}
+function topicName(q){var tf=GS().topicFixes;var id=String(q.id);if(tf[id])return canonTopic(tf[id]);var bt=(q.topic||'').split('.');return canonTopic(bt.slice(1).join('.')||bt[0]||'--')}
 function normAns(a){return String(a==null?'':a).split(',').map(function(x){return x.trim()}).filter(Boolean).sort().join(',')}
 function upKW(q,ok){
   var d=GS(),tk=topicKey(q),rec=d.kw[tk]||{w:0,t:0,ts:''};
@@ -911,6 +923,92 @@ function kwWeakness(tk){
   var wr=rec.w/rec.t;
   var days=rec.ts?Math.floor((Date.now()-new Date(rec.ts).getTime())/86400000):0;
   return wr*(1+days/14);
+}
+// ===== 知识点整理：轻量取 topic / 归一合并 / 一次性整理 =====
+// 轻量取知识点（仅 topic，不含完整分析），用于批量整理
+async function aiTopicOnly(q){
+  if(!DEEPSEEK_KEY)return '';
+  var typeName=({1:'单选',2:'多选',3:'不定项'})[q.type||1]||'未知';
+  var optsTxt='';['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
+  var prompt='你是法考辅导老师。请为下面这道题提炼一个最简洁的核心考点标签（力求简短，几个字到十几个字，不要啰嗦），只输出标签本身，格式：<<<topic:考点名>>>\n\n'
+    +'【科目】'+(q.lawName||'')+'\n【题型】'+typeName+'\n【题目】'+(q.content||'')+'\n【选项】\n'+optsTxt
+    +'\n【正确答案】'+(q.correctAnswer||'')+'\n【官方解析】'+((q.questionResolution||'').substring(0,400));
+  try{
+    var r=await fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:60})});
+    var data=await r.json();
+    var reply=data&&data.choices&&data.choices[0]?data.choices[0].message.content:'';
+    if(reply){var tm=reply.match(/<<<topic:([^>]+)>>>/);if(tm)return tm[1].trim().split('.')[0].trim();}
+  }catch(e){}
+  return '';
+}
+// 归一：将一批原始标签合并且规范化为同一考点，返回 {原始:规范}
+async function aiNormalize(list){
+  if(!DEEPSEEK_KEY||!list.length)return {};
+  var prompt='你是法考知识点整理助手。下面是一批知识点标签（可能含同义、近义或表述不一的重复项）。请将它们合并为规范、简洁、去重的考点名称。\n'
+    +'请只返回 JSON，格式：{"原始标签1":"规范考点1","原始标签2":"规范考点2"}，不要任何解释或代码块标记。\n\n标签列表：\n'
+    +list.map(function(s,i){return (i+1)+'. '+s;}).join('\n');
+  try{
+    var r=await fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:2000})});
+    var data=await r.json();
+    var reply=data&&data.choices&&data.choices[0]?data.choices[0].message.content:'';
+    if(reply){var m=reply.match(/\{[\s\S]*\}/);if(m){var obj=JSON.parse(m[0]);var out={};Object.keys(obj).forEach(function(k){var v=String(obj[k]).split('.')[0].trim();if(v)out[String(k).split('.')[0].trim()]=v;});return out;}}
+  }catch(e){}
+  return {};
+}
+var CONSOLIDATE_CANCEL=false;
+function openConsolidateModal(){var m=document.getElementById('consolidateModal');if(m)m.classList.add('show');}
+function closeConsolidateModal(){var m=document.getElementById('consolidateModal');if(m)m.classList.remove('show');}
+function updateConsolidateModal(stage,cur,total,extra){
+  var el=document.getElementById('consProg');if(!el)return;var v=extra||{};
+  if(stage==='reg')el.innerHTML='阶段1/2 · 重新生成知识点：<b>'+cur+'</b> / '+total+' 题';
+  else if(stage==='norm')el.innerHTML='阶段1/2 · 重新生成知识点：<b>'+total+'</b> / '+total+' 题<br>阶段2/2 · 正在合并同义考点…';
+  else if(stage==='done')el.innerHTML='✅ 整理完成<br>共整理 <b>'+total+'</b> 个知识点，合并为 <b>'+v.vocab+'</b> 个规范考点。<br>薄弱点分析已按规范考点聚合。';
+}
+// 一次性整理：重新生成所有已有 topicFixes（修复截断）+ 归一合并为规范词表
+async function consolidateTopics(){
+  if(!DEEPSEEK_KEY){alert('请先在「云端同步设置」中填写 DeepSeek API Key，整理知识点需要调用 AI。');return;}
+  var d0=GS();var ids=Object.keys(d0.topicFixes||{});
+  if(ids.length===0){alert('当前没有已生成的 AI 知识点，无需整理。');return;}
+  if(!confirm('将重新生成全部 '+ids.length+' 个已生成的 AI 知识点（修复被截断的旧知识点），并合并同义考点为规范词表。\n\n此操作会调用 AI（按题目数量限流），可能耗时数分钟。是否继续？'))return;
+  CONSOLIDATE_CANCEL=false;
+  if(!D||!Q||Q.length===0){await new Promise(function(res){loadData(function(dd){Q=dd;D=true;res();},function(){res();});});}
+  var id2q={};Q.forEach(function(q){if(q)id2q[String(q.id)]=q;});
+  openConsolidateModal();
+  // 阶段1：并发重新生成（限制并发，逐步写回本地，断点可续）
+  var CONC=4,done1=0,fresh={};
+  for(var i=0;i<ids.length&&!CONSOLIDATE_CANCEL;i+=CONC){
+    var batch=ids.slice(i,i+CONC);
+    var res=await Promise.all(batch.map(async function(id){var q=id2q[id];if(!q)return [id,''];var t=await aiTopicOnly(q);return [id,t];}));
+    res.forEach(function(p){var id=p[0],t=p[1];if(t){fresh[id]=t;var dd=GS();dd.topicFixes[id]=t;SS(dd);}done1++;});
+    updateConsolidateModal('reg',done1,ids.length,{});
+  }
+  // 阶段2：归一合并
+  updateConsolidateModal('norm',done1,ids.length,{});
+  var rawList=[],seen={};
+  Object.keys(fresh).forEach(function(id){var v=fresh[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}});
+  ids.forEach(function(id){if(!fresh[id]){var v=d0.topicFixes[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}}});
+  var alias=d0.topicAlias||{};
+  for(var b=0;b<rawList.length&&!CONSOLIDATE_CANCEL;b+=40){
+    var map=await aiNormalize(rawList.slice(b,b+40));
+    if(map)Object.keys(map).forEach(function(k){if(map[k])alias[k]=map[k];});
+  }
+  if(CONSOLIDATE_CANCEL){updateConsolidateModal('done',done1,ids.length,{vocab:Object.keys(alias).length});setTimeout(closeConsolidateModal,2000);return;}
+  // 重写 topicFixes 为规范串 + 构建词表 + 重映射 kw
+  var vocabSet={},nd=GS();
+  Object.keys(nd.topicFixes).forEach(function(id){var c=canonTopic(nd.topicFixes[id]);nd.topicFixes[id]=c;if(c)vocabSet[c]=1;});
+  nd.topicAlias=alias;nd.topicVocab=Object.keys(vocabSet);
+  var oldKw=nd.kw||{},newKw={};
+  Object.keys(oldKw).forEach(function(k){
+    var dot=k.indexOf('.'),law=dot>0?k.substring(0,dot):'',base=dot>0?k.substring(dot+1):k;
+    var c=alias[base]||base,nk=law?law+'.'+c:k;
+    if(!newKw[nk])newKw[nk]={t:0,w:0,ts:''};
+    newKw[nk].t+=(oldKw[k].t||0);newKw[nk].w+=(oldKw[k].w||0);
+    if((oldKw[k].ts||'')>(newKw[nk].ts||''))newKw[nk].ts=oldKw[k].ts;
+  });
+  nd.kw=newKw;
+  SS(nd);debounceSync();
+  updateConsolidateModal('done',Object.keys(nd.topicFixes).length,ids.length,{vocab:nd.topicVocab.length});
+  setTimeout(closeConsolidateModal,2600);
 }
 function nowISO(){return new Date().toISOString()}
 // 本地日期（GMT+8），用于按天统计，避免 toISOString() 的 UTC 时区偏差
@@ -994,6 +1092,8 @@ function pullGist(id){
         m.h=mergeDays(local.h,remote.h);
         m.t=Math.max(local.t||0,remote.t||0);m.k=Math.max(local.k||0,remote.k||0);m.s=Math.max(local.s||0,remote.s||0);
         m.topicFixes=mergeObj(local.topicFixes||{},remote.topicFixes||{});
+        m.topicAlias=mergeObj(local.topicAlias||{},remote.topicAlias||{});
+        m.topicVocab=(local.topicVocab||[]).concat(remote.topicVocab||[]).filter(function(v,i,a){return a.indexOf(v)===i});
         m.notes=mergeObj(local.notes||{},remote.notes||{});
         m.flags=mergeObj(local.flags||{},remote.flags||{});
         m.firstSeen=mergeObj(local.firstSeen||{},remote.firstSeen||{});
@@ -1473,7 +1573,7 @@ function callDeepSeek(q, did, ua){
           // 首次生成：迁移旧 kw 数据
           var oldRaw=q.topic||'';
           var oldBase=oldRaw.split('.')[0];var oldTk=q.lawName+'.'+oldBase;
-          g.topicFixes[_id]=topicFix;
+          g.topicFixes[_id]=canonTopic(topicFix);
           var newTk=q.lawName+'.'+topicFix;
           if(oldTk!==newTk&&g.kw[oldTk]){
             var or=g.kw[oldTk];
@@ -1833,6 +1933,9 @@ function openSyncSettings(){
   h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px">追问用 V4 Pro · 其他用 deepseek-chat</p><div style="border-top:1px solid #eee;margin:8px 0"></div>';
   h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4d6bfe">获取 Key</a></p></div>';
   h+='<div style="text-align:right;margin-top:12px"><button class="btn btn-gray" onclick="exportData()" style="padding:5px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:5px 12px;font-size:11px;margin-left:6px">导入数据</button></div>';
+  h+='<div style="margin:12px 0;border-top:1px solid #eee;padding-top:10px"><p style="font-size:12px;color:#999;margin:0 0 6px">知识点整理</p>';
+  h+='<p style="font-size:10px;color:#bbb;margin:0 0 6px">重新生成全部已生成的 AI 知识点（修复旧版被截断的），并合并同义考点为规范词表。需消耗 AI 额度，按题目数量限流。</p>';
+  h+='<button class="btn btn-blue" onclick="closeDetail();consolidateTopics()" style="padding:6px 14px;font-size:12px">整理知识点（重新生成并合并）</button></div>';
   h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-gray" onclick="closeDetail()" style="padding:5px 16px;font-size:12px;margin-right:8px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:5px 16px;font-size:12px">保存</button></div>';
   document.getElementById('detailBox').innerHTML=h;
   document.getElementById('detailModal').classList.add('show');
