@@ -980,25 +980,33 @@ function updateConsolidateModal(stage,cur,total,extra){
   else if(stage==='done')el.innerHTML='✅ 整理完成<br>共整理 <b>'+total+'</b> 个知识点，合并为 <b>'+v.vocab+'</b> 个规范考点。<br>薄弱点分析已按规范考点聚合。';
 }
 // 一次性整理：重新生成所有已有 topicFixes（修复截断）+ 归一合并为规范词表
-async function consolidateTopics(){
+async function consolidateTopics(regenerate){
+  if(regenerate===undefined)regenerate=true;
   if(!DEEPSEEK_KEY){alert('请先在「云端同步设置」中填写 DeepSeek API Key，整理知识点需要调用 AI。');return;}
   var d0=GS();var ids=Object.keys(d0.topicFixes||{});
   if(ids.length===0){alert('当前没有已生成的 AI 知识点，无需整理。');return;}
-  if(!confirm('将重新生成全部 '+ids.length+' 个已生成的 AI 知识点（修复被截断的旧知识点），并合并同义考点为规范词表。\n\n此操作会调用 AI（按题目数量限流），可能耗时数分钟。是否继续？'))return;
+  if(regenerate){
+    if(!confirm('将重新生成全部 '+ids.length+' 个已生成的 AI 知识点（修复被截断的旧知识点），并合并同义考点为规范词表。\n\n此操作会调用 AI（按题目数量限流），可能耗时数分钟。是否继续？'))return;
+  }else{
+    if(!confirm('将把已有的 '+ids.length+' 个知识点按同义合并为规范词表（不重新生成，速度快）。\n\n仅调用少量 AI 做合并，通常几十秒内完成。是否继续？'))return;
+  }
   CONSOLIDATE_CANCEL=false;
   if(!D||!Q||Q.length===0){await new Promise(function(res){loadData(function(dd){Q=dd;D=true;res();},function(){res();});});}
   var id2q={};Q.forEach(function(q){if(q)id2q[String(q.id)]=q;});
   openConsolidateModal();
-  // 阶段1：并发重新生成（限制并发，逐步写回本地，断点可续）
-  var CONC=4,done1=0,fresh={};
-  for(var i=0;i<ids.length&&!CONSOLIDATE_CANCEL;i+=CONC){
-    var batch=ids.slice(i,i+CONC);
-    var res=await Promise.all(batch.map(async function(id){var q=id2q[id];if(!q)return [id,''];var t=await aiTopicOnly(q);return [id,t];}));
-    res.forEach(function(p){var id=p[0],t=p[1];if(t){fresh[id]=t;var dd=GS();dd.topicFixes[id]=t;SS(dd);}done1++;});
-    updateConsolidateModal('reg',done1,ids.length,{});
+  var fresh={},done1=0;
+  if(regenerate){
+    // 阶段1：并发重新生成（限制并发，逐步写回本地，断点可续）
+    var CONC=4;
+    for(var i=0;i<ids.length&&!CONSOLIDATE_CANCEL;i+=CONC){
+      var batch=ids.slice(i,i+CONC);
+      var res=await Promise.all(batch.map(async function(id){var q=id2q[id];if(!q)return [id,''];var t=await aiTopicOnly(q);return [id,t];}));
+      res.forEach(function(p){var id=p[0],t=p[1];if(t){fresh[id]=t;var dd=GS();dd.topicFixes[id]=t;SS(dd);}done1++;});
+      updateConsolidateModal('reg',done1,ids.length,{});
+    }
   }
-  // 阶段2：归一合并
-  updateConsolidateModal('norm',done1,ids.length,{});
+  // 阶段2：归一合并（轻量模式 fresh 为空，直接合并已有 topicFixes）
+  updateConsolidateModal('norm',done1||ids.length,ids.length,{});
   var rawList=[],seen={};
   Object.keys(fresh).forEach(function(id){var v=fresh[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}});
   ids.forEach(function(id){if(!fresh[id]){var v=d0.topicFixes[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}}});
@@ -1007,7 +1015,7 @@ async function consolidateTopics(){
     var map=await aiNormalize(rawList.slice(b,b+40));
     if(map)Object.keys(map).forEach(function(k){if(map[k])alias[k]=map[k];});
   }
-  if(CONSOLIDATE_CANCEL){updateConsolidateModal('done',done1,ids.length,{vocab:Object.keys(alias).length});setTimeout(closeConsolidateModal,2000);return;}
+  if(CONSOLIDATE_CANCEL){updateConsolidateModal('done',done1||ids.length,ids.length,{vocab:Object.keys(alias).length});setTimeout(closeConsolidateModal,2000);return;}
   // 重写 topicFixes 为规范串 + 构建词表 + 重映射 kw
   var vocabSet={},nd=GS();
   Object.keys(nd.topicFixes).forEach(function(id){var c=canonTopic(nd.topicFixes[id]);nd.topicFixes[id]=c;if(c)vocabSet[c]=1;});
@@ -1953,8 +1961,9 @@ function openSyncSettings(){
   h+='<p style="font-size:10px;color:#bbb;margin:0 0 4px"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4d6bfe">获取 Key</a></p></div>';
   h+='<div style="text-align:right;margin-top:12px"><button class="btn btn-gray" onclick="exportData()" style="padding:5px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:5px 12px;font-size:11px;margin-left:6px">导入数据</button></div>';
   h+='<div style="margin:12px 0;border-top:1px solid #eee;padding-top:10px"><p style="font-size:12px;color:#999;margin:0 0 6px">知识点整理</p>';
-  h+='<p style="font-size:10px;color:#bbb;margin:0 0 6px">重新生成全部已生成的 AI 知识点（修复旧版被截断的），并合并同义考点为规范词表。需消耗 AI 额度，按题目数量限流。</p>';
-  h+='<button class="btn btn-blue" onclick="closeDetail();consolidateTopics()" style="padding:6px 14px;font-size:12px">整理知识点（重新生成并合并）</button></div>';
+  h+='<p style="font-size:10px;color:#bbb;margin:0 0 6px">「重新生成并合并」会逐题调用 AI 修复被截断旧知识点（慢，偶尔用）；「仅合并」只把已有考点按同义合并为规范词表（快，可常用来保持薄弱点分析整洁）。均需 DeepSeek Key。</p>';
+  h+='<div style="display:flex;gap:8px"><button class="btn btn-blue" onclick="closeDetail();consolidateTopics(true)" style="padding:6px 14px;font-size:12px;flex:1">重新生成并合并</button>';
+  h+='<button class="btn btn-gray" onclick="closeDetail();consolidateTopics(false)" style="padding:6px 14px;font-size:12px;flex:1">仅合并（快速）</button></div></div>';
   h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-gray" onclick="closeDetail()" style="padding:5px 16px;font-size:12px;margin-right:8px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:5px 16px;font-size:12px">保存</button></div>';
   document.getElementById('detailBox').innerHTML=h;
   document.getElementById('detailModal').classList.add('show');
