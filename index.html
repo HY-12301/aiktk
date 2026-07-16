@@ -1051,8 +1051,8 @@ function daysBetween(a,b){return Math.floor((new Date(b).getTime()-new Date(a).g
 // ===== 跨设备云端同步 (GitHub Gist) =====
 var SYNC_TOKEN=localStorage.getItem('syncToken')||'';
 var SYNC_ID=localStorage.getItem('syncId')||'';
-var SYNC_API='https://api.github.com/gists';
-function syncHeaders(){return{Authorization:'token '+SYNC_TOKEN,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'}}
+function syncApiBase(){var p=(localStorage.getItem('syncProxy')||'').trim().replace(/\/+$/,'');return p?p+'/gists':'https://api.github.com/gists';}
+function syncHeaders(){var auth=SYNC_TOKEN.indexOf('github_pat_')===0?'Bearer '+SYNC_TOKEN:'token '+SYNC_TOKEN;return{Authorization:auth,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'}}
 // 同步数据 gzip 压缩（解决 Gist 单文件 1MB 上限）；旧浏览器无 CompressionStream 时回退明文
 function gzB64(str){
   if(typeof CompressionStream==='undefined')return Promise.resolve('RAW:'+str);
@@ -1082,7 +1082,7 @@ function cloudSyncPull(){
   if(!SYNC_ID){
     // No local syncId — search for existing Gist
     setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>','查找中');
-    fetch(SYNC_API+'?per_page=50',{headers:syncHeaders()})
+    fetch(syncApiBase()+'?per_page=50',{headers:syncHeaders()})
       .then(function(r){return r.json()})
       .then(function(gists){
         var found=gists.find(function(g){return g.description==='爱题库同步数据'&&g.files&&g.files['quiz_data.json']});
@@ -1098,7 +1098,7 @@ function cloudSyncPull(){
 }
 function pullGist(id){
   setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>','同步中');
-  fetch(SYNC_API+'/'+id,{headers:syncHeaders()})
+  fetch(syncApiBase()+'/'+id,{headers:syncHeaders()})
     .then(function(r){if(!r.ok)throw Error();return r.json()})
     .then(async function(gist){
       var remote=JSON.parse(await ungzB64(gist.files['quiz_data.json'].content));
@@ -1156,11 +1156,11 @@ async function cloudSyncPush(showBadge){if(showBadge===undefined)showBadge=true;
   }
   catch(e){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','保存失败');return;}
   if(SYNC_ID){
-    fetch(SYNC_API+'/'+SYNC_ID,{method:'PATCH',headers:syncHeaders(),body:JSON.stringify({files:{'quiz_data.json':{content:content}}})})
+    fetch(syncApiBase()+'/'+SYNC_ID,{method:'PATCH',headers:syncHeaders(),body:JSON.stringify({files:{'quiz_data.json':{content:content}}})})
       .then(function(r){if(r.ok)setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>','已保存');else setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','保存失败')})
       .catch(function(){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','离线');});
   }else{
-    fetch(SYNC_API,{method:'POST',headers:syncHeaders(),body:JSON.stringify({description:'爱题库同步数据',public:false,files:{'quiz_data.json':{content:content}}})})
+    fetch(syncApiBase(),{method:'POST',headers:syncHeaders(),body:JSON.stringify({description:'爱题库同步数据',public:false,files:{'quiz_data.json':{content:content}}})})
       .then(function(r){return r.json()})
       .then(function(gist){
         if(gist.id){SYNC_ID=gist.id;localStorage.setItem('syncId',gist.id);setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>','已同步');}
@@ -1962,9 +1962,12 @@ function closeDetail(){document.getElementById('detailModal').classList.remove('
 function openSyncSettings(){
   var t=localStorage.getItem('syncToken')||'';
   var sid=localStorage.getItem('syncId')||'';
+  var spv=localStorage.getItem('syncProxy')||'';
   var h='<h3 style="margin:0 0 12px">云端同步设置</h3>';
   h+='<p style="font-size:12px;color:#999;margin-bottom:8px">使用 GitHub Gist 跨设备同步。需<a href="https://github.com/settings/tokens" target="_blank" style="color:#4d6bfe">创建 Token</a>（只勾 gist）。</p>';
   h+='<input id="syncTokenInput" value="'+t.replace(/"/g,'&quot;')+'" placeholder="粘贴 GitHub Token" style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:10px">';
+  h+='<input id="syncProxyInput" value="'+spv.replace(/"/g,'&quot;')+'" placeholder="可选·同步代理地址（如 https://xxx.workers.dev），国内网络转发 api.github.com" style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:10px">';
+  h+='<p style="font-size:10px;color:#bbb;margin:0 0 8px">留空=直连 api.github.com（国内常不通）；填 Cloudflare Worker 地址可绕开。详见对话里的 Worker 代码。</p>';
   if(sid){h+='<p style="font-size:11px;color:#43a047;margin:0 0 8px">✓ 已关联云端数据</p>'}
   else if(t){h+='<p style="font-size:11px;color:#ff9800;margin:0 0 8px">云端暂无数据，在任一设备刷题后自动创建</p>'}
   var dk=localStorage.getItem('deepseekKey')||'';
@@ -1984,6 +1987,7 @@ function openSyncSettings(){
 function saveSyncToken(){
   var t=document.getElementById('syncTokenInput').value.trim();
   localStorage.setItem('syncToken',t);SYNC_TOKEN=t;
+  var sp=document.getElementById('syncProxyInput');if(sp){var pv=sp.value.trim();if(pv){localStorage.setItem('syncProxy',pv)}else{localStorage.removeItem('syncProxy')}}
   var dk=document.getElementById('deepseekKeyInput');if(dk){var v=dk.value.trim();localStorage.setItem('deepseekKey',v);DEEPSEEK_KEY=v}
   localStorage.removeItem("syncId");SYNC_ID="";
   if(t){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>','已设置');cloudSyncPull()}
