@@ -101,8 +101,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-opt .opt-letter{min-width:28px;height:28px;border-radius:50%;border:1.5px solid #3c4650;text-align:center;line-height:26px;font-size:14px;flex-shrink:0;transition:all .12s}
 .quiz-opt.selected{border-color:#3278f2;color:#3278f2}
 .quiz-opt.selected .opt-letter{background:#3278f2;border-color:#3278f2;color:#fff}
-.quiz-opt.correct{border-color:#0dce7f;color:#0dce7f}
-.quiz-opt.correct .opt-letter{background:#0dce7f;border-color:#0dce7f;color:#fff}
+.quiz-opt.correct{border-color:#1f9d57;color:#1f9d57}
+.quiz-opt.correct .opt-letter{background:#1f9d57;border-color:#1f9d57;color:#fff}
 .quiz-opt.wrong{border-color:#ff6b6b;color:#ff6b6b}
 .quiz-opt.wrong .opt-letter{background:#ff6b6b;border-color:#ff6b6b;color:#fff}
 
@@ -957,9 +957,18 @@ async function aiTopicOnly(q){
   return '';
 }
 // 归一：将一批原始标签合并且规范化为同一考点，返回 {原始:规范}
+function normMergeKey(s){return String(s||'').split('.')[0].trim().replace(/(的|制度|问题|规定|情形|原则|规则|适用|认定|处理|分析|相关|具体|一般|特殊|范围|标准|要件|条件|区别|联系|特征|概念|含义)$/g,'');}
+function localCluster(list){
+  var base=list.map(function(s){return String(s||'').split('.')[0].trim();});
+  var first={},out={};
+  base.forEach(function(s){var k=normMergeKey(s);if(k&&(!first[k]||s.length<first[k].length))first[k]=s;});
+  base.forEach(function(s){var k=normMergeKey(s);if(k)out[s]=first[k];});
+  return out;
+}
 async function aiNormalize(list){
   if(!DEEPSEEK_KEY||!list.length)return {};
   var prompt='你是法考知识点整理助手。下面是一批知识点标签（可能含同义、近义或表述不一的重复项）。请将它们合并为规范、简洁、去重的考点名称。\n'
+    +'要求：语义相同或高度相近的务必合并为一个最简洁的名称；表述冗长的请精简为首短语；保留区分度，不要过度合并不同考点。\n'
     +'请只返回 JSON，格式：{"原始标签1":"规范考点1","原始标签2":"规范考点2"}，不要任何解释或代码块标记。\n\n标签列表：\n'
     +list.map(function(s,i){return (i+1)+'. '+s;}).join('\n');
   try{
@@ -1010,7 +1019,7 @@ async function consolidateTopics(regenerate){
   var rawList=[],seen={};
   Object.keys(fresh).forEach(function(id){var v=fresh[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}});
   ids.forEach(function(id){if(!fresh[id]){var v=d0.topicFixes[id];if(v&&!seen[v]){seen[v]=1;rawList.push(v);}}});
-  var alias=d0.topicAlias||{};
+  var alias=Object.assign({},localCluster(rawList),d0.topicAlias||{});
   for(var b=0;b<rawList.length&&!CONSOLIDATE_CANCEL;b+=40){
     var map=await aiNormalize(rawList.slice(b,b+40));
     if(map)Object.keys(map).forEach(function(k){if(map[k])alias[k]=map[k];});
@@ -1349,8 +1358,9 @@ function doS(s,z,m){
   var c=[];if(z)c.push('真题');if(m)c.push('模拟题');
   var pool=Q.filter(function(q){return s.indexOf(q.lawName)!==-1&&c.indexOf(q.source)!==-1});
   if(!pool.length){alert('无匹配题目');return}
-  // 过滤已掌握的题（EF≥2.5 且 interval≥30 且 reps≥3，即已稳定掌握）
-  pool=pool.filter(function(q){var m=geM(q.id);return !m||!(m.ef>=2.5&&m.interval>=30&&m.reps>=3)});
+  // 过滤已掌握的题，保留到 masteredPool 供补足用
+  var masteredPool=[];
+  pool=pool.filter(function(q){var mem=geM(q.id);if(mem&&mem.ef>=2.5&&mem.interval>=30&&mem.reps>=3){masteredPool.push(q);return false;}return true;});
   if(!pool.length){alert('当前科目已全部掌握！');return}
 
   // === Optimized stratified sampling ===
@@ -1394,12 +1404,15 @@ function doS(s,z,m){
     .concat(bucket.learning.slice(0,8))
     .concat(bucket.weak.slice(0,4));
   var result=news.concat(reviews);
-  // 不足100用更多新题补
+  // 不足100按优先级补足：剩余未做 → 错题 → 已做不急 → 已掌握
   if(result.length<SESSION_SIZE){
     var used={};result.forEach(function(q){used[String(q.id)]=1});
-    for(var i=MIN_NEW;i<bucket.unseen.length&&result.length<SESSION_SIZE;i++){
-      if(!used[String(bucket.unseen[i].id)])result.push(bucket.unseen[i]);
-    }
+    function pullFrom(arr){for(var i=0;i<arr.length&&result.length<SESSION_SIZE;i++){var id=String(arr[i].id);if(!used[id]){result.push(arr[i]);used[id]=1;}}}
+    pullFrom(bucket.unseen);
+    var wrongIds={};(GS().w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
+    pullFrom(pool.filter(function(q){return wrongIds[String(q.id)]&&!used[String(q.id)];}));
+    pullFrom(bucket.seen);
+    pullFrom(masteredPool);
   }
   shuffle(result);
   // v20260712-shuffle-check: confirmed
