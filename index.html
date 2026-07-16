@@ -2130,8 +2130,6 @@ function rP(){
     h+='<div class="seg gray" style="width:'+((totalQ-sj.sc-sj.sw)/totalQ*100)+'%"></div>';
     h+='</div></div>';
     h+='<span class="p-trate" style="color:'+(sj.cr>=70?'#2e7d32':sj.cr>=50?'#ff9800':'#c62828')+'">'+sj.cr+'%</span>';
-    h+='<span class="p-tdue">'+sj.cdue+'待</span>';
-    h+='<span class="p-tweak">'+(sj.weakTopic?'<b>'+sj.weakTopic+'</b> '+Math.round(sj.weakRate*100)+'%':'--')+'</span>';
     h+='</div>';
   });
   document.getElementById('pGrid').innerHTML=h;
