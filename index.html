@@ -44,14 +44,18 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .src-toggle span:last-child{border-radius:0 6px 6px 0}
 .src-toggle span.on{background:#4d6bfe;color:#fff;border-color:#4d6bfe}
 .subj-tags{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.subj-tag{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:0.5px solid #e8ecf0;cursor:pointer;font-size:11px;transition:all .12s;-webkit-user-select:none;user-select:none}
+.subj-tag{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:0.5px solid #e8ecf0;cursor:pointer;font-size:11px;transition:all .12s;-webkit-user-select:none;user-select:none}
 .subj-tag:hover{border-color:#b0bcd0}
 .subj-tag.sel{border-color:#4d6bfe;background:#f4f6ff}
 .subj-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .subj-name{font-weight:500;color:#3c4650;min-width:34px}
 .subj-info{flex:1;min-width:0}
-.subj-bar{height:4px;border-radius:2px;background:#f0f1f4;overflow:hidden;margin-bottom:2px}
-.subj-fill{height:100%;border-radius:2px;transition:width .3s}
+.subj-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.sb-zt{position:absolute;left:0;top:0;height:50%;width:0;background:rgba(255,112,67,.22);transition:width .3s}
+.sb-mc{position:absolute;left:0;bottom:0;height:50%;width:0;background:rgba(67,160,71,.22);transition:width .3s}
+.dark .sb-zt{background:rgba(255,112,67,.32)}
+.dark .sb-mc{background:rgba(67,160,71,.32)}
+.subj-dot,.subj-name,.subj-split{position:relative;z-index:1}
 .subj-num{font-size:10px;color:#bbb;text-align:right}
 .btn-row{display:flex;gap:10px}
 .btn{padding:9px 22px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;transition:all .15s}
@@ -1161,6 +1165,7 @@ function togSrc(type){
   var h='';
   Object.keys(subMap).forEach(function(k){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
+    h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span>';
     h+='<span class="subj-name">'+subMap[k]+'</span>';
     h+='<div class="subj-split">';
@@ -1285,12 +1290,19 @@ function updateHomeProgress(){
   Object.keys(subMap).forEach(function(k){
     var ztD=document.getElementById('ztD'+k),ztT=document.getElementById('ztT'+k);
     var mcD=document.getElementById('mcD'+k),mcT=document.getElementById('mcT'+k);
+    var bgZT=document.getElementById('bgZT'+k),bgMC=document.getElementById('bgMC'+k);
     if(Q.length>0){
       if(ztD)ztD.textContent=stat[k].ZT.d; if(ztT)ztT.textContent=stat[k].ZT.t;
       if(mcD)mcD.textContent=stat[k].MC.d; if(mcT)mcT.textContent=stat[k].MC.t;
+      var ztP=stat[k].ZT.t?Math.round(stat[k].ZT.d/stat[k].ZT.t*100):0;
+      var mcP=stat[k].MC.t?Math.round(stat[k].MC.d/stat[k].MC.t*100):0;
+      if(bgZT)bgZT.style.width=ztP+'%';
+      if(bgMC)bgMC.style.width=mcP+'%';
     } else {
       if(ztD)ztD.textContent='—'; if(ztT)ztT.textContent='加载中';
       if(mcD)mcD.textContent='—'; if(mcT)mcT.textContent='加载中';
+      if(bgZT)bgZT.style.width='0%';
+      if(bgMC)bgMC.style.width='0%';
     }
   });
   renderGoalBar();
