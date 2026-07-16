@@ -2934,8 +2934,6 @@ function renderProgressExtra(){
     examCard='<div class="p-card p-exam" style="grid-column:1/-1"><div class="ex-t">最近模考 · '+le.date.substring(0,10)+' · '+leRate+'%</div>'+subjRows+'</div>';
   }
   el.innerHTML=
-    '<div class="p-card p-rate"><div class="rc-row"><span>累计正确率</span><b>'+(rateAll!=null?rateAll+'%':'--')+'</b></div>'+
-    '<div class="rc-bar"><div class="rc-fill" style="width:'+(rateAll||0)+'%"></div></div></div>'+
     examCard+
     '<div class="p-card p-coach" style="grid-column:1/-1"><div class="co-t">AI 教练</div><div class="co-body" id="coachBody">'+coach+'</div>'+
     '<button class="btn btn-gray" style="margin-top:8px;font-size:11px" onclick="askCoach()">AI 生成今日计划</button>'+
