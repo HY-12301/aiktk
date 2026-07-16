@@ -841,7 +841,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 </div>
 
 <script>
-var Q=[],S=[],I=0,K=0,B=0,U=0,A={},R=null,D=false,EXAM_MODE=false,EXAM_TIMER=null,EXAM_DEADLINE=0;
+var Q=[],S=[],I=0,K=0,B=0,U=0,A={},R=null,D=false,EXAM_MODE=false,EXAM_TIMER=null,EXAM_DEADLINE=0,EXAM_COMMITTED={};
 
 // Dark mode toggle
 function toggleDark(){
@@ -968,7 +968,14 @@ function pullGist(id){
       var remote=JSON.parse(await ungzB64(gist.files['quiz_data.json'].content));
       var local=LS();
       var rLog=remote.todayLog||[],lLog=local.todayLog||[],rEx=remote.examScores||[],lEx=local.examScores||[];
-      if((remote.t||0)>(local.t||0)||(remote.w||[]).length>(local.w||[]).length||rLog.length>lLog.length||rEx.length>lEx.length){
+      var kc=function(o){return o?Object.keys(o).length:0};
+      // 合并触发：任一维度远端更多即合并。合并本身为非破坏性并集，故门槛宜宽。
+      // 关键修复：把 mem/done/notes/flags/firstSeen 的记录数也纳入判断，
+      // 避免“仅在另一台设备做过的题（mem 已写入远端）因本地 t 不小而不被合并、仍显示新题”。
+      if((remote.t||0)>(local.t||0)||(remote.w||[]).length>(local.w||[]).length||rLog.length>lLog.length||rEx.length>lEx.length
+         ||kc(remote.mem)>kc(local.mem)||kc(remote.done)>kc(local.done)
+         ||kc(remote.notes)>kc(local.notes)||kc(remote.flags)>kc(local.flags)
+         ||kc(remote.firstSeen)>kc(local.firstSeen)){
         var m={};for(var k in remote)m[k]=remote[k];
         m.todayLog=mergeArr(local.todayLog||[],remote.todayLog||[],'id');
         m.exams=Math.max(local.exams||0,remote.exams||0);
@@ -1605,9 +1612,9 @@ function submitAnswer(){
     },200);
   }
 }
-function skipQ(){U++;I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
-function nextQ(){I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
-function prevQ(){if(I>0){I--;qR();scrollTop()}}
+function skipQ(){if(EXAM_MODE)commitExamQ(S[I]);U++;I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
+function nextQ(){if(EXAM_MODE)commitExamQ(S[I]);I++;if(I>=S.length){if(EXAM_MODE)endExam();else eQ();}else{qR();scrollTop()}}
+function prevQ(){if(EXAM_MODE)commitExamQ(S[I]);if(I>0){I--;qR();scrollTop()}}
 function scrollTop(){if(window.innerWidth<=768)window.scrollTo({top:0,behavior:'smooth'})}
 
 var _rwtSkip=0;
@@ -1820,7 +1827,7 @@ function saveSyncToken(){
   closeDetail();
 }
 
-function clearErrors(){var d=GS();var ids=d.w.map(function(e){return String(e.id)});d.w=[];ids.forEach(function(id){delete d.mem[id]});SS(d);rEB()}
+function clearErrors(){var d=GS();d.w=[];SS(d);rEB();debounceSync();}
 
 function todayNewStudy(law){
   var d=GS(),fs=d.firstSeen||{};
@@ -2226,6 +2233,29 @@ function updateMemState(q,ok){
   seM(q.id,mem);
 }
 
+// 组卷(考试)模式实时回流：离开某题时若已作答且尚未回流，则立即写入记忆/薄弱/错题/首学，
+// 保证中途退出也不丢“做过”状态、不再显示为“新题”。每题仅回流一次，避免 SM-2 重复推进。
+function commitExamQ(q){
+  if(!q||!EXAM_MODE)return;
+  var a=A[q.id];
+  if(!a||!a.a)return;               // 未作答的题保持“新题”
+  if(EXAM_COMMITTED[q.id])return;   // 已回流则跳过
+  EXAM_COMMITTED[q.id]=true;
+  var ok=normAns(a.a)===normAns(q.correctAnswer);
+  var d=GS();
+  d.firstSeen=d.firstSeen||{};
+  if(!d.firstSeen[q.id])d.firstSeen[q.id]={date:todayKey(),law:q.lawName};
+  d.done[q.id]={law:q.lawName,ok:ok,time:new Date().toISOString()};
+  if(!ok){
+    var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
+    if(ei===-1)d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
+    else d.w[ei].streak=0;
+  }
+  updateMemState(q,ok);
+  upKW(q,ok);
+  if(!_memBatch)SS(GS());
+}
+
 
 var EXAM_START=0;
 function updateTimerEl(t,warn){var el=document.getElementById('qzTimer');if(el){el.textContent=t;el.classList.toggle('warn',!!warn);el.style.display='';}}
@@ -2435,7 +2465,7 @@ function doSmartExam(){
   closeSmart();
   EXAM_MODE=(SMART_MODE==='paper');
 
-  I=0;K=0;B=0;U=0;A={};WW={};WX=[];_rwtSkip=0;
+  I=0;K=0;B=0;U=0;A={};WW={};WX=[];_rwtSkip=0;EXAM_COMMITTED={};
   if(EXAM_TIMER)clearInterval(EXAM_TIMER);
   var timerEl=document.getElementById('qzTimer');
   if(timerEl)timerEl.style.display='';
@@ -2540,19 +2570,25 @@ function endExam(){
   }
 
   // ===== 回流：模考表现进入掌握度与薄弱识别 =====
+  // 翻页时已实时回流的题（EXAM_COMMITTED）跳过，避免 SM-2 重复推进；
+  // 剩余（含未作答，交卷时按错处理）在此统一回流。
   _memBatch=true;
   S.forEach(function(q){
+    if(EXAM_COMMITTED[q.id])return;
+    EXAM_COMMITTED[q.id]=true;
     var a=A[q.id];if(!a){a={a:'',r:true};A[q.id]=a}
     var ok=normAns(a.a)===normAns(q.correctAnswer);
-    updateMemState(q,ok);
-    upKW(q,ok);
+    var dd=GS();
+    dd.firstSeen=dd.firstSeen||{};
+    if(!dd.firstSeen[q.id])dd.firstSeen[q.id]={date:todayKey(),law:q.lawName};
+    dd.done[q.id]={law:q.lawName,ok:ok,time:new Date().toISOString()};
     if(!ok){
-      var dd=GS();
       var ei=dd.w.findIndex(function(w){return String(w.id)===String(q.id)});
       if(ei===-1)dd.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
       else dd.w[ei].streak=0;
-      dd.done[q.id]={law:q.lawName,ok:false,time:new Date().toISOString()};
     }
+    updateMemState(q,ok);
+    upKW(q,ok);
   });
   _memBatch=false;
   SS(GS());
