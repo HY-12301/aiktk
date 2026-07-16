@@ -31,6 +31,17 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .home-card:hover{border-color:#b0bcd0}
 .hcard-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-bottom:8px}
 .home-card h3{font-size:15px;font-weight:500;color:#3c4650;margin:0 0 4px}
+.free-prog{display:flex;gap:10px;margin-top:14px}
+.fp-col{flex:1;background:#f7f9fc;border-radius:10px;padding:10px 8px;text-align:center}
+.dark .fp-col{background:#0e0e14}
+.fp-bar{height:5px;border-radius:3px;background:#e6ebf2;overflow:hidden;margin-bottom:6px}
+.dark .fp-bar{background:#1a1a22}
+.fp-bar span{display:block;height:100%;background:#4d6bfe;width:0;transition:width .3s}
+.fp-num{font-size:15px;color:#2b3340;font-weight:600}
+.dark .fp-num{color:#e6e9f0}
+.fp-num i{font-style:normal;color:#bbb;margin:0 2px;font-weight:400}
+.fp-num span{color:#99a;font-weight:400;font-size:13px}
+.fp-lbl{font-size:11px;color:#8a93a0;margin-top:2px}
 .hcard-desc{font-size:12px;color:#999;margin:0 0 12px;line-height:1.5}
 .src-toggle{display:flex;gap:0;margin-bottom:14px}
 .src-toggle span{padding:5px 20px;font-size:12px;border:0.5px solid #d0d4dc;cursor:pointer;background:#fff;color:#888;flex:1;text-align:center;transition:all .12s}
@@ -629,6 +640,18 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <input type="checkbox" id="srcMC" checked style="display:none">
       <div class="subj-tags" id="subjTags">
       </div>
+      <div class="free-prog" id="freeProg">
+        <div class="fp-col">
+          <div class="fp-bar"><span id="fpZTbar"></span></div>
+          <div class="fp-num"><b id="fpZTd">0</b><i>/</i><span id="fpZTt">—</span></div>
+          <div class="fp-lbl">已做真题</div>
+        </div>
+        <div class="fp-col">
+          <div class="fp-bar"><span id="fpMCbar"></span></div>
+          <div class="fp-num"><b id="fpMCd">0</b><i>/</i><span id="fpMCt">—</span></div>
+          <div class="fp-lbl">已做模拟</div>
+        </div>
+      </div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn btn-gray" onclick="selAll(true)" style="flex:1;font-size:11px">全选</button>
         <button class="btn btn-gray" onclick="selAll(false)" style="flex:1;font-size:11px">清空</button>
@@ -1069,6 +1092,8 @@ function togSrc(type){
 // Auto sync on load
 setTimeout(function(){cloudSyncPull();updateHomeProgress();}, 600);
 renderGoalBar();renderHomeReco();
+// 后台预载题库：用于首页“按来源”进度统计（不阻塞渲染；已在加载中则跳过）
+if(!D){loadData(function(d){if(d&&d.length){Q=d;D=true;updateHomeProgress();}},function(){})}
 
 // Load data - try gz first, then raw JSON
 // 题库版本号：更新题库文件后须同步 bump 此处与 sw.js 中的 BANK_VER
@@ -1178,6 +1203,21 @@ function updateHomeProgress(){
       el.querySelector('.subj-num').textContent=dd+'/'+tt;
     }
   });
+  // 来源维度进度（真题/模拟）：需题库已载入
+  var fpZTd=document.getElementById('fpZTd'),fpZTt=document.getElementById('fpZTt'),fpZTbar=document.getElementById('fpZTbar');
+  var fpMCd=document.getElementById('fpMCd'),fpMCt=document.getElementById('fpMCt'),fpMCbar=document.getElementById('fpMCbar');
+  if(Q.length>0){
+    var ZT=0,MC=0,dZT=0,dMC=0;
+    for(var i=0;i<Q.length;i++){var q=Q[i];if(!q)continue;
+      if(q.source==='真题'){ZT++;if(done[q.id])dZT++;}
+      else if(q.source==='模拟题'){MC++;if(done[q.id])dMC++;}
+    }
+    if(fpZTd)fpZTd.textContent=dZT;if(fpZTt)fpZTt.textContent=ZT;if(fpZTbar)fpZTbar.style.width=(ZT?Math.round(dZT/ZT*100):0)+'%';
+    if(fpMCd)fpMCd.textContent=dMC;if(fpMCt)fpMCt.textContent=MC;if(fpMCbar)fpMCbar.style.width=(MC?Math.round(dMC/MC*100):0)+'%';
+  } else if(fpZTd){
+    fpZTd.textContent='—';fpZTt.textContent='加载中';
+    fpMCd.textContent='—';fpMCt.textContent='加载中';
+  }
   renderGoalBar();
 }
 
@@ -1449,23 +1489,28 @@ function callDeepSeek(q, did, ua){
       var tm=reply.match(/<<<topic:([^>]+)>>>/);
       if(tm){topicFix=tm[1].trim();analysis=reply.replace(/<<<topic:[^>]+>>>/,'').trim()}
       el.innerHTML='<b style="color:#2b3fd4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek AI</b><div style="margin-top:6px;font-size:13px;line-height:1.8">'+fmtReply(analysis)+'</div>';
-      // Save AI topic fix + migrate kw
+      // Save AI topic fix — 每题只生成一次，已存在则复用，绝不覆盖（避免跨刷新/重开被重新抽取而改变）
       if(topicFix&&topicFix.length<=16){
         topicFix=topicFix.split('.')[0];if(topicFix.length>8)topicFix=topicFix.substring(0,8);
         var g=GS();
-        // 迁移旧 kw 数据
-        var oldRaw=g.topicFixes[String(q.id)]||(q.topic||'');
-        var oldBase=oldRaw.split('.')[0];var oldTk=q.lawName+'.'+oldBase;
-        g.topicFixes[String(q.id)]=topicFix;
-        var newTk=q.lawName+'.'+topicFix;
-        if(oldTk!==newTk&&g.kw[oldTk]){
-          var or=g.kw[oldTk];
-          var nr=g.kw[newTk]||{w:0,t:0,ts:''};
-          nr.w+=or.w;nr.t+=or.t;nr.ts=or.ts;
-          g.kw[newTk]=nr;delete g.kw[oldTk];
+        var _id=String(q.id);
+        if(!g.topicFixes[_id]){
+          // 首次生成：迁移旧 kw 数据
+          var oldRaw=q.topic||'';
+          var oldBase=oldRaw.split('.')[0];var oldTk=q.lawName+'.'+oldBase;
+          g.topicFixes[_id]=topicFix;
+          var newTk=q.lawName+'.'+topicFix;
+          if(oldTk!==newTk&&g.kw[oldTk]){
+            var or=g.kw[oldTk];
+            var nr=g.kw[newTk]||{w:0,t:0,ts:''};
+            nr.w+=or.w;nr.t+=or.t;nr.ts=or.ts;
+            g.kw[newTk]=nr;delete g.kw[oldTk];
+          }
+          SS(g);
         }
-        SS(g);
-        var ts=document.getElementById('tpcSpan');if(ts){ts.textContent=topicFix;ts.title=topicFix}
+        // 头部知识点标签始终显示已存储(或本次生成的)值，保持跨刷新一致
+        var ts=document.getElementById('tpcSpan');
+        if(ts){var _disp=g.topicFixes[_id]||topicFix;ts.textContent=_disp;ts.title=_disp}
       }
     } else {
       el.innerHTML='<b style="color:#999"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek</b> 暂未返回结果';
