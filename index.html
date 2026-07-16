@@ -636,10 +636,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <p class="hcard-desc">自选科目与来源，随机出题练习</p>
       <div class="src-toggle" id="srcToggle">
         <span id="srcTagZT" class="on" onclick="togSrc('ZT')">真题</span>
-        <span id="srcTagMC" class="on" onclick="togSrc('MC')">模拟</span>
+        <span id="srcTagMC" onclick="togSrc('MC')">模拟</span>
       </div>
       <input type="checkbox" id="srcZT" checked style="display:none">
-      <input type="checkbox" id="srcMC" checked style="display:none">
+      <input type="checkbox" id="srcMC" style="display:none">
       <div class="subj-tags" id="subjTags">
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -2872,7 +2872,7 @@ function renderHomeReco(){
   Object.keys(mem).forEach(function(id){var m=mem[id];if(m&&m.totalWrong&&m.totalWrong>=2)weak++;});
   var hint='按你的掌握度自动组卷（优先复习到期与薄弱内容）';
   if(Q.length)hint='约 '+due+' 题待复习 · '+weak+' 个易错点需巩固';
-  el.innerHTML='<div class="reco-t">今日推荐</div><div class="reco-d">'+hint+'</div>';
+  el.innerHTML='<div class="reco-d">'+hint+'</div>';
 }
 function startReco(){
   ensureLoaded(function(){
