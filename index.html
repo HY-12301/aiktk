@@ -1473,7 +1473,7 @@ function callDeepSeek(q, did, ua){
     '2. 简要分析：为什么正确答案是对的，学生错选的选项为什么不对\n'+
     '3. 本题的易错点（一句话）\n'+
     '4. 学习建议（一句话）\n\n'+
-    '最后单独一行标注知识点标签（不超过8字），格式：<<<topic:知识点名>>>';
+    '最后单独一行标注知识点标签，用最简洁的语言概括本题核心考点（力求简短，几个字到十几个字即可，不要啰嗦），格式：<<<topic:知识点名>>>';
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1490,8 +1490,8 @@ function callDeepSeek(q, did, ua){
       if(tm){topicFix=tm[1].trim();analysis=reply.replace(/<<<topic:[^>]+>>>/,'').trim()}
       el.innerHTML='<b style="color:#2b3fd4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek AI</b><div style="margin-top:6px;font-size:13px;line-height:1.8">'+fmtReply(analysis)+'</div>';
       // Save AI topic fix — 每题只生成一次，已存在则复用，绝不覆盖（避免跨刷新/重开被重新抽取而改变）
-      if(topicFix&&topicFix.length<=16){
-        topicFix=topicFix.split('.')[0];if(topicFix.length>8)topicFix=topicFix.substring(0,8);
+      if(topicFix){
+        topicFix=topicFix.split('.')[0].trim();
         var g=GS();
         var _id=String(q.id);
         if(!g.topicFixes[_id]){
