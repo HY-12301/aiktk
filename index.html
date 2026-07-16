@@ -31,17 +31,12 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .home-card:hover{border-color:#b0bcd0}
 .hcard-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;margin-bottom:8px}
 .home-card h3{font-size:15px;font-weight:500;color:#3c4650;margin:0 0 4px}
-.free-prog{display:flex;gap:10px;margin-top:14px}
-.fp-col{flex:1;background:#f7f9fc;border-radius:10px;padding:10px 8px;text-align:center}
-.dark .fp-col{background:#0e0e14}
-.fp-bar{height:5px;border-radius:3px;background:#e6ebf2;overflow:hidden;margin-bottom:6px}
-.dark .fp-bar{background:#1a1a22}
-.fp-bar span{display:block;height:100%;background:#4d6bfe;width:0;transition:width .3s}
-.fp-num{font-size:15px;color:#2b3340;font-weight:600}
-.dark .fp-num{color:#e6e9f0}
-.fp-num i{font-style:normal;color:#bbb;margin:0 2px;font-weight:400}
-.fp-num span{color:#99a;font-weight:400;font-size:13px}
-.fp-lbl{font-size:11px;color:#8a93a0;margin-top:2px}
+.subj-split{margin-left:auto;display:flex;gap:9px;align-items:center;font-size:10px;white-space:nowrap}
+.subj-split i{font-style:normal;color:#ccc;margin:0 1px;font-weight:400}
+.subj-split b{font-size:11px;font-weight:600}
+.subj-split span{font-weight:400;font-size:10px}
+.sp-zt{color:#ff7043}.sp-zt b{color:#ff7043}
+.sp-mc{color:#43a047}.sp-mc b{color:#43a047}
 .hcard-desc{font-size:12px;color:#999;margin:0 0 12px;line-height:1.5}
 .src-toggle{display:flex;gap:0;margin-bottom:14px}
 .src-toggle span{padding:5px 20px;font-size:12px;border:0.5px solid #d0d4dc;cursor:pointer;background:#fff;color:#888;flex:1;text-align:center;transition:all .12s}
@@ -640,18 +635,6 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <input type="checkbox" id="srcMC" checked style="display:none">
       <div class="subj-tags" id="subjTags">
       </div>
-      <div class="free-prog" id="freeProg">
-        <div class="fp-col">
-          <div class="fp-bar"><span id="fpZTbar"></span></div>
-          <div class="fp-num"><b id="fpZTd">0</b><i>/</i><span id="fpZTt">—</span></div>
-          <div class="fp-lbl">已做真题</div>
-        </div>
-        <div class="fp-col">
-          <div class="fp-bar"><span id="fpMCbar"></span></div>
-          <div class="fp-num"><b id="fpMCd">0</b><i>/</i><span id="fpMCt">—</span></div>
-          <div class="fp-lbl">已做模拟</div>
-        </div>
-      </div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn btn-gray" onclick="selAll(true)" style="flex:1;font-size:11px">全选</button>
         <button class="btn btn-gray" onclick="selAll(false)" style="flex:1;font-size:11px">清空</button>
@@ -1080,9 +1063,10 @@ function togSrc(type){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
     h+='<span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span>';
     h+='<span class="subj-name">'+subMap[k]+'</span>';
-    h+='<div class="subj-info" id="tagProg'+k+'">';
-    h+='<div class="subj-bar"><div class="subj-fill" style="width:0%"></div></div>';
-    h+='<div class="subj-num">--/--</div></div>';
+    h+='<div class="subj-split">';
+    h+='<span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span>';
+    h+='<span class="sp-mc"><b id="mcD'+k+'">0</b><i>/</i><span id="mcT'+k+'">—</span></span>';
+    h+='</div>';
     h+='<input type="checkbox" id="sub'+k+'" style="display:none">';
     h+='</div>';
   });
@@ -1186,38 +1170,29 @@ function updateHomeProgress(){
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var colors={MF:'#4d6bfe',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
   var subTotals={MF:2900,XF:3007,XZF:2056,MS:1622,XS:2235,SJF:2703,LLF:1803,SGF:1048};
+  // 各科目 × 来源(真题/模拟)：总数 t 与 已做 d（一次遍历 Q）
+  var stat={};
+  Object.keys(subMap).forEach(function(k){stat[k]={ZT:{t:0,d:0},MC:{t:0,d:0}}});
   if(Q.length>0){
-    subTotals={};
-    Q.forEach(function(q){var k=Object.keys(subMap).find(function(k){return subMap[k]===q.lawName});if(k)subTotals[k]=(subTotals[k]||0)+1});
+    for(var i=0;i<Q.length;i++){var q=Q[i];if(!q)continue;
+      var k=Object.keys(subMap).find(function(kk){return subMap[kk]===q.lawName});
+      if(!k)continue;
+      var src=q.source==='真题'?'ZT':'MC';
+      stat[k][src].t++;
+      if(done[q.id])stat[k][src].d++;
+    }
   }
   Object.keys(subMap).forEach(function(k){
-    var subj=subMap[k];
-    var dd=0;
-    Object.keys(done).forEach(function(id){if(done[id]&&done[id].law===subj)dd++});
-    var tt=subTotals[k]||0;
-    var p=tt>0?Math.round(dd/tt*100):0;
-    var el=document.getElementById('tagProg'+k);
-    if(el){
-      var fill=el.querySelector('.subj-fill');
-      if(fill){fill.style.width=p+'%';fill.style.background=colors[k]||'#888'}
-      el.querySelector('.subj-num').textContent=dd+'/'+tt;
+    var ztD=document.getElementById('ztD'+k),ztT=document.getElementById('ztT'+k);
+    var mcD=document.getElementById('mcD'+k),mcT=document.getElementById('mcT'+k);
+    if(Q.length>0){
+      if(ztD)ztD.textContent=stat[k].ZT.d; if(ztT)ztT.textContent=stat[k].ZT.t;
+      if(mcD)mcD.textContent=stat[k].MC.d; if(mcT)mcT.textContent=stat[k].MC.t;
+    } else {
+      if(ztD)ztD.textContent='—'; if(ztT)ztT.textContent='加载中';
+      if(mcD)mcD.textContent='—'; if(mcT)mcT.textContent='加载中';
     }
   });
-  // 来源维度进度（真题/模拟）：需题库已载入
-  var fpZTd=document.getElementById('fpZTd'),fpZTt=document.getElementById('fpZTt'),fpZTbar=document.getElementById('fpZTbar');
-  var fpMCd=document.getElementById('fpMCd'),fpMCt=document.getElementById('fpMCt'),fpMCbar=document.getElementById('fpMCbar');
-  if(Q.length>0){
-    var ZT=0,MC=0,dZT=0,dMC=0;
-    for(var i=0;i<Q.length;i++){var q=Q[i];if(!q)continue;
-      if(q.source==='真题'){ZT++;if(done[q.id])dZT++;}
-      else if(q.source==='模拟题'){MC++;if(done[q.id])dMC++;}
-    }
-    if(fpZTd)fpZTd.textContent=dZT;if(fpZTt)fpZTt.textContent=ZT;if(fpZTbar)fpZTbar.style.width=(ZT?Math.round(dZT/ZT*100):0)+'%';
-    if(fpMCd)fpMCd.textContent=dMC;if(fpMCt)fpMCt.textContent=MC;if(fpMCbar)fpMCbar.style.width=(MC?Math.round(dMC/MC*100):0)+'%';
-  } else if(fpZTd){
-    fpZTd.textContent='—';fpZTt.textContent='加载中';
-    fpMCd.textContent='—';fpMCt.textContent='加载中';
-  }
   renderGoalBar();
 }
 
