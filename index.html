@@ -1205,6 +1205,7 @@ function togSrc(type){
 // Auto sync on load
 setTimeout(function(){cloudSyncPull();updateHomeProgress();}, 600);
 renderGoalBar();renderHomeReco();
+routeFromHash();  // 初始化哈希路由（浏览器返回键在应用内生效）
 // 后台预载题库：用于首页“按来源”进度统计（不阻塞渲染；已在加载中则跳过）
 if(!D){loadData(function(d){if(d&&d.length){Q=d;D=true;updateHomeProgress();}},function(){})}
 
@@ -1285,14 +1286,29 @@ function loadData(cb, errCb){
   });
 }
 
-function switchTab(t){
+function _showPage(t){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.querySelectorAll('.tabs a').forEach(function(a){a.classList.remove('active')});
-  if(t==='home'){document.getElementById('pageHome').classList.add('active');document.querySelector('[data-tab=home]').classList.add('active');updateHomeProgress()}
-  else if(t==='errorbook'){document.getElementById('pageErrorbook').classList.add('active');document.querySelector('[data-tab=errorbook]').classList.add('active');rEB()}
-  else if(t==='progress'){document.getElementById('pageProgress').classList.add('active');document.querySelector('[data-tab=progress]').classList.add('active');rP();renderProgressExtra()}
-  else if(t==='marks'){document.getElementById('pageMarks').classList.add('active');document.querySelector('[data-tab=marks]').classList.add('active');rMarks()}
+  if(t==='home'){document.getElementById('pageHome').classList.add('active');var a=document.querySelector('[data-tab=home]');if(a)a.classList.add('active');updateHomeProgress()}
+  else if(t==='errorbook'){document.getElementById('pageErrorbook').classList.add('active');var a=document.querySelector('[data-tab=errorbook]');if(a)a.classList.add('active');rEB()}
+  else if(t==='progress'){document.getElementById('pageProgress').classList.add('active');var a=document.querySelector('[data-tab=progress]');if(a)a.classList.add('active');rP();renderProgressExtra()}
+  else if(t==='marks'){document.getElementById('pageMarks').classList.add('active');var a=document.querySelector('[data-tab=marks]');if(a)a.classList.add('active');rMarks()}
+  else if(t==='quiz'){if(!S||!S.length){location.replace('#home');return;}document.getElementById('pageQuiz').classList.add('active');var a=document.querySelector('[data-tab=home]');if(a)a.classList.add('active')}
+  else if(t==='summary'){if(!S||!S.length){location.replace('#home');return;}document.getElementById('pageSummary').classList.add('active');var a=document.querySelector('[data-tab=home]');if(a)a.classList.add('active')}
 }
+// 顶部 tab 切换：写入哈希，使浏览器“返回”在应用内生效
+function switchTab(t){
+  if((''+location.hash).replace('#','')!==t){location.hash=t;}
+  else{_showPage(t);}
+}
+// 哈希路由：浏览器返回键逐级回退（sub页→首页），而不是直接退出网页
+function routeFromHash(){
+  var h=(''+location.hash).replace('#','')||'home';
+  var ok=['home','marks','errorbook','progress','quiz','summary'];
+  if(ok.indexOf(h)<0)h='home';
+  _showPage(h);
+}
+window.addEventListener('hashchange', routeFromHash);
 
 function updateHomeProgress(){
   var d=GS(),done=d.done||{};
@@ -1421,6 +1437,7 @@ function doS(s,z,m){
   hideTimer();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.getElementById('pageQuiz').classList.add('active');
+  if((''+location.hash).replace('#','')!=='quiz')location.hash='quiz';
   document.getElementById('qTotal').textContent=S.length;
   document.getElementById('qSubject').textContent=s.length+'科';
   qR();
@@ -1745,11 +1762,10 @@ function submitAnswer(){
   var hi=d2.h.findIndex(function(h){return (h.date||'').substring(0,10)===today});
   if(hi!==-1){d2.h[hi].t++;if(ok)d2.h[hi].k++}else{d2.h.push({date:today,t:1,k:ok?1:0,b:ok?0:1})}
   if(d2.h.length>50)d2.h=d2.h.slice(-50);
-  // 今日新学：记录每日作答（用于“今日已学”统计）
+  // 今日新学：记录每日作答（用于“今日已学”统计），仅保留当日记录
   d2.todayLog=d2.todayLog||[];
   d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:today});
-  var _cut=new Date();_cut.setDate(_cut.getDate()-2);
-    d2.todayLog=d2.todayLog.filter(function(e){return new Date(e.time).getTime()>_cut.getTime()});
+  d2.todayLog=d2.todayLog.filter(function(e){return (e.time||'').substring(0,10)===today});
     var tp=topicName(q);
   if(!ok)WW[tp]=(WW[tp]||0)+1;
   // Track session-local errors for AI summary
@@ -1862,6 +1878,7 @@ function eQ(){
 
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.getElementById('pageSummary').classList.add('active');
+  if((''+location.hash).replace('#','')!=='summary')location.hash='summary';
   document.querySelectorAll('.tabs a').forEach(function(a){a.classList.remove('active')});
 }
 
@@ -2682,6 +2699,7 @@ function endExam(){
 
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   document.getElementById('pageSummary').classList.add('active');
+  if((''+location.hash).replace('#','')!=='summary')location.hash='summary';
 
   document.getElementById('sTotal').textContent=total+'题 / '+maxScore+'分';
   document.getElementById('sOk').textContent=score+'分';
@@ -2870,7 +2888,8 @@ function renderGoalBar(){
   var streak=0;var cur=new Date();cur.setHours(0,0,0,0);
   if(!dates[ldKey(cur)])cur.setDate(cur.getDate()-1);
   while(dates[ldKey(cur)]){streak++;cur.setDate(cur.getDate()-1);}
-  var todayDone=(d.todayLog&&d.todayLog.length)||0;
+  var tk=todayKey();
+  var todayDone=(d.todayLog||[]).filter(function(e){return (e.time||'').substring(0,10)===tk;}).length;
   var doneColor=todayDone>=g.daily?'#0dce7f':'#4d6bfe';
   el.innerHTML='<div class="gb-left"><div class="gb-days">'+left+'</div><div class="gb-lbl">天后笔试</div>'+
     (streak>0?'<div class="gb-streak">🔥 连续 '+streak+' 天</div>':'')+
