@@ -150,22 +150,21 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .answer-panel-top{background:#f8fafc;padding:16px 20px;border-bottom:1px solid var(--border-light);font-size:14px;font-weight:600;color:var(--text-secondary);display:flex;justify-content:space-between}
 .answer-content{padding:22px 26px}
 .answer-empty{color:var(--text-tertiary);text-align:center;padding:40px 0;font-size:14px}
-/* Answer result banner — pure-icon state + correct option letter, no prose */
-.answer-result{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:14px;flex-wrap:wrap}
-.answer-result .ar-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
-.answer-result.ok{background:var(--success-soft)}
-.answer-result.ok .ar-icon{background:var(--success)}
-.answer-result.bad{background:var(--danger-soft)}
-.answer-result.bad .ar-icon{background:var(--danger)}
-.answer-result .ar-arrow{color:var(--text-tertiary);flex-shrink:0}
-.answer-result .ar-opt{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 9px;border-radius:8px;font-weight:700;font-size:14px}
-.answer-result .ar-opt-right{background:var(--success);color:#fff}
-.answer-result .ar-opt-mine{background:#fff;border:1.5px solid var(--danger);color:var(--danger-600)}
-.dark .answer-result.ok{background:#0a2e1f}
-.dark .answer-result.bad{background:#2e0d0d}
-.dark .answer-result .ar-opt-right{background:var(--success);color:#06281c}
-.dark .answer-result .ar-opt-mine{background:#2e0d0d;border-color:#ef4444;color:#fca5a5}
-.dark .answer-result.bad .ar-right{color:#6ee7b7}
+/* Answer result banner — 单框：左用户作答 / 右正确答案(仅正确项)，无文字 */
+.answer-result{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:14px;flex-wrap:wrap}
+.answer-result.ok{background:var(--success-soft);border:1px solid #a7f3d0}
+.answer-result.bad{background:var(--danger-soft);border:1px solid #fecaca}
+.ar-opt{display:inline-flex;align-items:center;justify-content:center;min-width:22px;padding:0 5px;font-weight:500;font-size:18px;letter-spacing:2px;color:var(--text-secondary);transition:var(--transition)}
+.ar-opt.ua-right{color:#047857}
+.ar-opt.ua-wrong{color:#b91c1c}
+.ar-opt.ca-on{color:#047857}
+.ar-arrow{display:flex;align-items:center;color:var(--text-tertiary);flex-shrink:0}
+.dark .answer-result.ok{background:#064e3b;border-color:#065f46}
+.dark .answer-result.bad{background:#450a0a;border-color:#7f1d1d}
+.dark .ar-opt{color:#cbd5e1}
+.dark .ar-opt.ua-right{color:#6ee7b7}
+.dark .ar-opt.ua-wrong{color:#fca5a5}
+.dark .ar-opt.ca-on{color:#6ee7b7}
 .answer-stats{font-size:13px;line-height:1.8;margin-bottom:14px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .answer-stats strong{color:var(--primary)}
 /* AI 讲解统一区块 */
@@ -304,8 +303,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-right{border-color:#1f2937}
 .dark .answer-panel-top{background:#141820;color:#94a3b8;border-color:#1f2937}
 .dark .answer-content{background:#0f1117}
-.dark .answer-result.ok{background:#064e3b;color:#6ee7b7}
-.dark .answer-result.bad{background:#450a0a;color:#fca5a5}
+/* (answer-result 暗色已在横幅区块统一处理) */
 .dark .ai-explain{background:#312e81;border-color:#4f46e5}
 .dark .ai-explain .ai-title{color:#c7d2fe}
 .dark .ai-explain .ai-body{color:#c7d2fe}
@@ -553,7 +551,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .quiz-opt .opt-letter{min-width:32px;height:32px;line-height:30px;font-size:14px}
   .answer-panel-top{padding:10px 14px;font-size:13px}
   .answer-content{padding:12px 14px}
-  .answer-result{font-size:13px;padding:8px 12px}
+  .answer-result{gap:6px;padding:10px 12px}
+  .ar-opt{min-width:18px;padding:0 3px;font-size:16px;letter-spacing:1px}
   .answer-resolution{font-size:12px;max-height:200px;padding:10px}
   .quiz-foot{position:fixed;bottom:0;left:0;right:0;background:var(--card);z-index:50;padding:5px 12px;padding-bottom:max(5px,env(safe-area-inset-bottom));text-align:center;border-top:1px solid var(--border)}
   .quiz-foot .btn{padding:6px 14px;font-size:12px;min-width:80px;min-height:32px}
@@ -920,9 +919,32 @@ function seM(qid,s){
 }
 function mkM(){return{ef:2.5,interval:0,reps:0,nextReview:null,lastReview:null,totalAttempts:0,totalWrong:0,phase:'new',learningStepIdx:0,reLearningStepIdx:0,prevInterval:0}}
 
-// 知识点直接取自题库 q.topic（章节名）。题库原始 topic 可能残留脏数据（如「other」「答案为A」），
-// 统一归一：剥「科目.」前缀 → 取首分句 → 垃圾标签归「其他」→ 截断 16 字
+// 章节名白名单：用题库里「干净规范的段」自动建成标准名集合（零人工）。
+// 规则：排除垃圾标签、拼接连词(及其/与相关)、半截句、答案复述、超长描述后缀 → 其余视为合法章节名。
+// 脏长描述若包含某标准短名则归一过去；纯垃圾/半截归「其他」；合法章节(含低频、长罪名)保留。
 var TOPIC_JUNK=/^(other|其他|a错误|b错误|c错误|d错误|ab选项|abcd选项|本题|选项[abcd]?：|x选项|答案|解析|题目|题干)/i;
+var TOPIC_DIRTY=/以及相关犯罪|及其关联犯罪|与其他犯罪|和相关犯罪|认定及其在|的认定及其|及其相应|相应责任|责任承担问题|相应犯罪|关联犯罪的认定|与相关犯罪的关系|应该选择.{0,3}选项|本题选|指根据|有或全无|该办法属于|下列说法正确的是|关于.{0,6}的说法/;
+var CHAPTER_WL=null,CHAPTER_SET=null;
+function segOf(q){
+  var raw=String(q.topic||'').trim();
+  var seg=raw.indexOf('.')>=0?raw.split('.').slice(1).join('.').trim():raw;
+  if(!seg)seg=raw.split('.')[0];
+  return seg.split(/[；;，,。\n]/)[0].trim();
+}
+function isCleanSeg(s){
+  if(!s||TOPIC_JUNK.test(s)||TOPIC_DIRTY.test(s))return false;
+  if(s.length<2||s.length>40)return false;
+  if(/与其?|以及相关|与相关|以及其|与相关犯罪/.test(s))return false;
+  if(/的认定|的原则与|若干问题|概述$/.test(s))return false;
+  if(/[与及和]$/.test(s)||/其$/.test(s))return false;
+  return true;
+}
+function buildWhitelist(){
+  if(!Q||!Q.length){CHAPTER_WL=[];CHAPTER_SET=new Set();return;}
+  var m={};
+  for(var i=0;i<Q.length;i++){var s=segOf(Q[i]);if(isCleanSeg(s))m[s]=1;}
+  CHAPTER_WL=Object.keys(m);CHAPTER_SET=new Set(CHAPTER_WL);
+}
 function topicName(q){
   var t=q.topic||'';var ln=q.lawName||'';
   if(ln&&t.indexOf(ln+'.')===0)t=t.slice(ln.length+1);
@@ -931,7 +953,14 @@ function topicName(q){
   t=t.split(/[；;，,。\n]/)[0].trim();
   if(!t)return '其他';
   if(TOPIC_JUNK.test(t))return '其他';
-  if(t.length>16)t=t.slice(0,16);
+  if(CHAPTER_WL===null)buildWhitelist();
+  if(CHAPTER_SET&&CHAPTER_SET.has(t))return t;
+  // 脏拼接/答案复述/半截/超长描述：尝试归一到包含的标准名，否则归其他（取题面最早出现、同位置取最长）
+  if(TOPIC_DIRTY.test(t)||t.length>12||/[与及和]$/.test(t)||/其$/.test(t)){
+    var hit=null,hitPos=1e9,hitLen=0;
+    if(CHAPTER_WL)for(var i=0;i<CHAPTER_WL.length;i++){var w=CHAPTER_WL[i];if(w.length<3)continue;var p=t.indexOf(w);if(p<0)continue;if(p<hitPos||(p===hitPos&&w.length>hitLen)){hitPos=p;hit=w;hitLen=w.length;}}
+    return hit||'其他';
+  }
   return t;
 }
 function topicKey(q){return (q.lawName||'')+'.'+topicName(q)}
@@ -1445,15 +1474,18 @@ function rA(q,ok,ua){
   var ca=correct.split(',').map(function(x){return x.trim()});
   var uo=ua?ua.split(',').map(function(x){return x.trim()}):[];
 
-  var h='';
-  if(ok){
-    h+='<div class="answer-result ok"><span class="ar-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><polyline points="20 6 9 17 4 12"/></svg></span><span class="ar-opt ar-opt-right">'+esc(correct)+'</span></div>';
-  }else{
-    h+='<div class="answer-result bad"><span class="ar-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'
-      +(ua?'<span class="ar-opt ar-opt-mine">'+esc(ua)+'</span>':'')
-      +'<svg class="ar-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>'
-      +'<span class="ar-opt ar-opt-right">'+esc(correct)+'</span></div>';
-  }
+  // 单框横幅：左=用户作答(选对绿框/多选错选红框)，右=正确答案(仅正确项，绿框)，无任何文字
+  var leftHtml='';
+  uo.forEach(function(o){
+    var isRight=ca.indexOf(o)!==-1;
+    leftHtml+='<span class="ar-opt '+(isRight?'ua-right':'ua-wrong')+'">'+esc(o)+'</span>';
+  });
+  var rightHtml='';
+  ca.forEach(function(o){rightHtml+='<span class="ar-opt ca-on">'+esc(o)+'</span>';});
+  var inner=leftHtml
+    +(uo.length?'<span class="ar-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>':'')
+    +rightHtml;
+  var h='<div class="answer-result '+(ok?'ok':'bad')+'">'+inner+'</div>';
   var tn=topicName(q);
   h+='<div class="answer-stats">'+esc(q.difficulty||'?')+' | '+esc(q.lawName)+' · '+esc(q.source||'')+' | <span id="tpcSpan" style="color:#4f46e5;white-space:nowrap" title="'+esc(tn)+'">'+esc(tn)+'</span></div>';
 
@@ -1522,11 +1554,9 @@ function callDeepSeek(q, did, ua){
     '【学生答案】'+esc(ua||'未作答')+'\n'+
     '【正确答案】'+esc(q.correctAnswer||'')+'\n'+
     '【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'+
-    '请用简短中文回复（约350字内）：\n'+
-    '1. 学生答对还是答错了？\n'+
-    '2. 逐选项（A/B/C/D）分别说明该选项「对」或「错」的理由，必须覆盖每一个选项、不得省略任何一个；多选题所有正确选项都要逐一说明为什么正确\n'+
-    '3. 本题的易错点（一句话）\n'+
-    '4. 学习建议（一句话）\n\n'
+    '请用简短中文回复（约300字内）：\n'+
+    '1. 逐选项（A/B/C/D）分别说明该选项「对」或「错」的理由，必须覆盖每一个选项、不得省略任何一个；多选题所有正确选项都要逐一说明为什么正确\n'+
+    '2. 本题的易错点（一句话）\n\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
