@@ -160,6 +160,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ar-opt.ca-on{color:#047857}
 .ar-opt.ca-miss{color:#b91c1c}
 .ar-arrow{display:flex;align-items:center;color:var(--text-tertiary);flex-shrink:0}
+.ar-check{display:flex;align-items:center;color:#047857;flex-shrink:0}
+.dark .ar-check{color:#6ee7b7}
 .dark .answer-result.ok{background:#064e3b;border-color:#065f46}
 .dark .answer-result.bad{background:#220808;border-color:#7f1d1d}
 .dark .ar-opt{color:#cbd5e1}
@@ -1483,10 +1485,15 @@ function rA(q,ok,ua){
     leftHtml+='<span class="ar-opt '+(isRight?'ua-right':'ua-wrong')+'">'+esc(o)+'</span>';
   });
   var rightHtml='';
-  ca.forEach(function(o){var missed=uo.indexOf(o)===-1;rightHtml+='<span class="ar-opt '+(missed?'ca-miss':'ca-on')+'">'+esc(o)+'</span>';});
-  var inner=leftHtml
-    +(uo.length?'<span class="ar-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>':'')
-    +rightHtml;
+  var multi=ca.length>1;
+  ca.forEach(function(o){var missed=uo.indexOf(o)===-1;rightHtml+='<span class="ar-opt '+((multi&&missed)?'ca-miss':'ca-on')+'">'+esc(o)+'</span>';});
+  var inner=ok
+    ?'<span class="ar-check"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>'
+      +'<span class="ar-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>'
+      +rightHtml
+    :leftHtml
+      +(uo.length?'<span class="ar-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>':'')
+      +rightHtml;
   var h='<div class="answer-result '+(ok?'ok':'bad')+'">'+inner+'</div>';
   var tn=topicName(q);
   h+='<div class="answer-stats">'+esc(q.difficulty||'?')+' | '+esc(q.lawName)+' · '+esc(q.source||'')+' | <span id="tpcSpan" style="color:#4f46e5;white-space:nowrap" title="'+esc(tn)+'">'+esc(tn)+'</span></div>';
@@ -1556,15 +1563,15 @@ function callDeepSeek(q, did, ua){
     '【学生答案】'+esc(ua||'未作答')+'\n'+
     '【正确答案】'+esc(q.correctAnswer||'')+'\n'+
     '【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'+
-    '请用简短中文回复（约300字内）：\n'+
-    '1. 逐选项（A/B/C/D）分别说明该选项「对」或「错」的理由，必须覆盖每一个选项、不得省略任何一个；多选题所有正确选项都要逐一说明为什么正确\n'+
-    '2. 本题的易错点（一句话）\n\n'
+    '请用简短中文回复（约150字内）：\n'+
+    '1. 逐选项（A/B/C/D）分别用一两句话点明该选项「对」或「错」的关键理由，必须覆盖每一个选项、不得省略；多选题每个正确选项都要点到\n'+
+    '2. 本题易错点（一句话）\n\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:800})
+    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:400})
   }).then(function(r){return r.json()}).then(function(data){
     var el=document.getElementById(did);
     if(!el)return;
