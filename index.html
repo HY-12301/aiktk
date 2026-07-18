@@ -920,11 +920,18 @@ function seM(qid,s){
 }
 function mkM(){return{ef:2.5,interval:0,reps:0,nextReview:null,lastReview:null,totalAttempts:0,totalWrong:0,phase:'new',learningStepIdx:0,reLearningStepIdx:0,prevInterval:0}}
 
-// 知识点直接取自题库 q.topic（章节名）。防御旧缓存/旧数据残留的「科目.」前缀：
-// 若 q.topic 以 lawName+'.' 开头则剥掉，保证显示干净、topicKey 不会变成 lawName.lawName.xxx
+// 知识点直接取自题库 q.topic（章节名）。题库原始 topic 可能残留脏数据（如「other」「答案为A」），
+// 统一归一：剥「科目.」前缀 → 取首分句 → 垃圾标签归「其他」→ 截断 16 字
+var TOPIC_JUNK=/^(other|其他|a错误|b错误|c错误|d错误|ab选项|abcd选项|本题|选项[abcd]?：|x选项|答案|解析|题目|题干)/i;
 function topicName(q){
   var t=q.topic||'';var ln=q.lawName||'';
   if(ln&&t.indexOf(ln+'.')===0)t=t.slice(ln.length+1);
+  t=t.trim();
+  if(!t)return '其他';
+  t=t.split(/[；;，,。\n]/)[0].trim();
+  if(!t)return '其他';
+  if(TOPIC_JUNK.test(t))return '其他';
+  if(t.length>16)t=t.slice(0,16);
   return t;
 }
 function topicKey(q){return (q.lawName||'')+'.'+topicName(q)}
