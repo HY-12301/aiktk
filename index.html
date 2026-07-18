@@ -39,7 +39,22 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* Home Cards */
-.home-cards{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;max-width:1240px;margin:0 auto}
+.home-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:1240px;margin:0 auto}
+#cardFree{grid-column:1/-1;border-color:var(--primary);box-shadow:var(--shadow)}
+#cardFree:hover{border-color:var(--primary);box-shadow:var(--shadow-lg)}
+.home-card:not(#cardFree){display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 16px}
+.home-card:not(#cardFree):hover{cursor:pointer;border-color:var(--primary);background:var(--primary-soft);transform:translateY(-2px);box-shadow:var(--shadow)}
+.ic-primary{background:var(--primary-soft);color:var(--primary)}
+.ic-success{background:var(--success-soft);color:var(--success-600)}
+.ic-danger{background:var(--danger-soft);color:var(--danger-600)}
+.ic-warning{background:var(--warning-soft);color:#b45309}
+.home-more{margin-top:14px;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm)}
+.home-more-label{font-size:13px;font-weight:600;color:var(--text-secondary)}
+.home-more .btn{margin-left:auto}
+.dark .ic-primary{background:#312e81;color:#a5b4fc}
+.dark .ic-success{background:#064e3b;color:#6ee7b7}
+.dark .ic-danger{background:#450a0a;color:#fca5a5}
+.dark .ic-warning{background:#451a03;color:#fcd34d}
 .home-card{background:var(--card);border-radius:var(--radius);padding:12px 16px;border:1px solid var(--border-light);box-shadow:var(--shadow-sm);transition:var(--transition)}
 .home-card:hover{box-shadow:var(--shadow);border-color:var(--border);transform:translateY(-1px)}
 .hcard-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;margin-bottom:8px;box-shadow:var(--shadow-sm)}
@@ -95,6 +110,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-subj.show{display:inline-block}
 .quiz-actions{display:flex;gap:8px;flex-wrap:nowrap;flex-shrink:0;min-width:0}
 .quiz-actions .btn{padding:5px 10px;font-size:11px;border-radius:6px;white-space:nowrap;flex-shrink:0;line-height:1.2}
+.quiz-end{background:transparent;color:var(--text-tertiary);border:1px solid var(--border);font-weight:500}
+.quiz-end:hover{color:var(--text);border-color:var(--border)}
+.dark .quiz-end{background:transparent;color:#94a3b8;border-color:#1f2937}
+.dark .quiz-end:hover{color:#e2e8f0;border-color:#374151}
 .quiz-pill{flex:1;height:18px;border-radius:99px;background:var(--border-light);display:flex;overflow:hidden;font-size:11px;font-weight:600;flex-shrink:0;min-width:80px}
 .pill-good{background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;transition:width .25s}
 .pill-bad{background:#cbd5e1;color:#fff;display:flex;align-items:center;justify-content:center;transition:width .25s}
@@ -106,9 +125,9 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-card{padding:22px 26px}
 .quiz-stuff{background:#f1f5f9;padding:12px 16px;border-radius:10px;border-left:4px solid var(--primary);margin-bottom:16px;font-size:14px;line-height:1.8;white-space:pre-line;max-height:160px;overflow-y:auto}
 .quiz-type{font-size:12px;color:var(--text-tertiary);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.quiz-question{font-size:16px;line-height:1.9;margin-bottom:22px;color:var(--text);font-weight:500}
+.quiz-question{font-size:16px;line-height:1.8;letter-spacing:.3px;margin-bottom:22px;color:var(--text);font-weight:500}
 .quiz-options{margin-bottom:14px}
-.quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.6;transition:var(--transition);background:var(--card)}
+.quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.55;transition:var(--transition);background:var(--card)}
 .quiz-opt:hover{border-color:var(--primary);background:var(--primary-soft)}
 .quiz-opt .opt-letter{min-width:30px;height:30px;border-radius:50%;border:1.5px solid var(--text-secondary);text-align:center;line-height:28px;font-size:13px;flex-shrink:0;transition:var(--transition);font-weight:600}
 .quiz-opt.selected{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
@@ -117,6 +136,12 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-opt.correct .opt-letter{background:var(--success);border-color:var(--success);color:#fff}
 .quiz-opt.wrong{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
 .quiz-opt.wrong .opt-letter{background:var(--danger);border-color:var(--danger);color:#fff}
+.quiz-opt .opt-txt{flex:1;min-width:0}
+.opt-badge{margin-left:10px;font-size:15px;font-weight:700;line-height:1;flex-shrink:0}
+.opt-badge.ok{color:var(--success-600)}
+.opt-badge.no{color:var(--danger-600)}
+.dark .opt-badge.ok{color:#6ee7b7}
+.dark .opt-badge.no{color:#fca5a5}
 
 /* Nav bar inside quiz-card */
 .quiz-action-nav{display:flex;justify-content:center;gap:12px;padding:10px 0;border-top:1px solid var(--border-light);margin-top:12px}
@@ -125,13 +150,42 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .answer-panel-top{background:#f8fafc;padding:16px 20px;border-bottom:1px solid var(--border-light);font-size:14px;font-weight:600;color:var(--text-secondary);display:flex;justify-content:space-between}
 .answer-content{padding:22px 26px}
 .answer-empty{color:var(--text-tertiary);text-align:center;padding:40px 0;font-size:14px}
-.answer-result{padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:14px;font-size:14px;font-weight:500}
-.answer-result.ok{background:var(--success-soft);color:var(--success-600)}
-.answer-result.bad{background:var(--danger-soft);color:var(--danger-600)}
+/* Answer result banner — pure-icon state + correct option letter, no prose */
+.answer-result{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:14px;flex-wrap:wrap}
+.answer-result .ar-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.answer-result.ok{background:var(--success-soft)}
+.answer-result.ok .ar-icon{background:var(--success)}
+.answer-result.bad{background:var(--danger-soft)}
+.answer-result.bad .ar-icon{background:var(--danger)}
+.answer-result .ar-arrow{color:var(--text-tertiary);flex-shrink:0}
+.answer-result .ar-opt{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 9px;border-radius:8px;font-weight:700;font-size:14px}
+.answer-result .ar-opt-right{background:var(--success);color:#fff}
+.answer-result .ar-opt-mine{background:#fff;border:1.5px solid var(--danger);color:var(--danger-600)}
+.dark .answer-result.ok{background:#0a2e1f}
+.dark .answer-result.bad{background:#2e0d0d}
+.dark .answer-result .ar-opt-right{background:var(--success);color:#06281c}
+.dark .answer-result .ar-opt-mine{background:#2e0d0d;border-color:#ef4444;color:#fca5a5}
+.dark .answer-result.bad .ar-right{color:#6ee7b7}
 .answer-stats{font-size:13px;line-height:1.8;margin-bottom:14px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .answer-stats strong{color:var(--primary)}
-.answer-ai{background:var(--warning-soft);padding:14px 16px;border-radius:var(--radius-sm);border-left:4px solid var(--warning);margin-bottom:14px;font-size:13px;line-height:1.8}
-.answer-ai .ai-label{color:#b45309;font-weight:600;font-size:13px;margin-bottom:8px;display:block}
+/* AI 讲解统一区块 */
+.ai-explain{background:var(--primary-soft);border:1px solid #c7d2fe;border-left:4px solid var(--primary);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px}
+.ai-explain .ai-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ai-explain .ai-avatar{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-explain .ai-title{font-size:13px;font-weight:700;color:var(--primary)}
+.ai-explain .ai-body{font-size:13px;line-height:1.8;color:var(--text-secondary)}
+.ai-explain .ai-body strong{color:var(--text)}
+.ai-explain .ai-pre{margin-bottom:8px;white-space:pre-line}
+.ai-explain .ai-point{display:inline-block;padding:4px 10px;border-radius:99px;background:#e0e7ff;color:var(--primary-600);font-size:12px;font-weight:600;margin-top:4px}
+.ai-explain .ai-loading{display:flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:13px}
+.ai-dots{display:inline-flex;gap:4px}
+.ai-dots i{width:5px;height:5px;border-radius:50%;background:var(--primary);opacity:.4;animation:aiBlink 1.2s infinite}
+.ai-dots i:nth-child(2){animation-delay:.2s}
+.ai-dots i:nth-child(3){animation-delay:.4s}
+@keyframes aiBlink{0%,100%{opacity:.3}50%{opacity:1}}
+.ai-explain .ai-sub{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px}
+.ai-explain .ai-empty{font-size:13px;color:var(--text-tertiary);line-height:1.8}
+.dark .ai-explain .ai-sub{color:#a5b4fc}
 .answer-resolution{font-size:13px;line-height:1.8;color:var(--text-secondary);max-height:250px;overflow-y:auto;white-space:pre-line;padding:12px;background:var(--bg);border-radius:var(--radius-sm)}.answer-resolution .res-label{color:#3c4650;font-weight:600;font-size:12px;display:block;margin-bottom:6px}
 
 /* AI chat */
@@ -167,9 +221,9 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .eb-card:hover{border-color:var(--border);background:var(--bg);transform:translateY(-1px);box-shadow:var(--shadow)}
 .eb-card .eb-h{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .eb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.eb-name{font-size:13px;font-weight:600;color:var(--text)}
-.eb-num{font-size:11px;color:var(--text-tertiary);margin-left:auto}
-.eb-preview{font-size:11px;color:var(--text-secondary);line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:6px}
+.eb-name{font-size:14px;font-weight:700;color:var(--text);margin-right:6px}
+.eb-num{margin-left:auto;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.eb-preview{font-size:11px;color:var(--text-tertiary);line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:2px 0 6px}
 .eb-date{font-size:10px;color:var(--text-tertiary)}
 .eb-empty{grid-column:1/-1;text-align:center;color:var(--text-tertiary);padding:40px;font-size:14px}
 /* Detail panel */
@@ -206,6 +260,12 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .subj-tag.sel{background:#312e81;border-color:#4f46e5}
 .dark .subj-tag:hover{background:#18202a}
 .dark .subj-num{color:#64748b}
+.dark .subj-name{color:#e2e8f0}
+.dark .home-card h3{color:#e2e8f0}
+.dark .sp-zt{color:#fb923c}
+.dark .sp-zt b{color:#fb923c}
+.dark .sp-mc{color:#4ade80}
+.dark .sp-mc b{color:#4ade80}
 .dark .btn{color:#e2e8f0}
 .dark .btn-blue{background:#4f46e5}
 .dark .btn-blue:hover{background:#4338ca}
@@ -222,8 +282,11 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .src-toggle span.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
 .dark .eb-item{border-color:#1f2937;color:#e2e8f0}
 .dark .eb-item:hover{background:#18202a}
+.dark .eb-item .eb-txt{color:#e2e8f0}
 .dark .eb-preview{color:#94a3b8}
 .dark .eb-topic-h{background:#450a0a;color:#fca5a5}
+.dark .eb-name{color:#e2e8f0}
+.dark .eb-detail-title{color:#e2e8f0}
 .dark .bottom-controls{background:#0f1117;border-color:#1f2937}
 .dark .quiz-header{background:#141820!important;color:#e2e8f0!important;border-color:#1f2937}
 .dark .quiz-current{color:#f8fafc!important}
@@ -234,7 +297,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-opt.selected{background:#312e81;border-color:#4f46e5;color:#e2e8f0}
 .dark .quiz-opt.correct{background:#064e3b;border-color:#059669;color:#6ee7b7}
 .dark .quiz-opt.wrong{background:#450a0a;border-color:#dc2626;color:#fca5a5}
-.dark .quiz-opt .opt-letter{background:#1f2937;color:#cbd5e1!important}
+.dark .quiz-opt .opt-letter{background:#334155;color:#e2e8f0!important}
 .dark .quiz-question{color:#f8fafc!important}
 .dark .quiz-stuff{background:#18202a;color:#e2e8f0!important;border-color:#4f46e5}
 .dark .quiz-left,.dark .quiz-right{background:#0f1117}
@@ -243,7 +306,11 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .answer-content{background:#0f1117}
 .dark .answer-result.ok{background:#064e3b;color:#6ee7b7}
 .dark .answer-result.bad{background:#450a0a;color:#fca5a5}
-.dark .answer-ai{background:#451a03!important;border-color:#f59e0b!important;color:#fcd34d!important}
+.dark .ai-explain{background:#312e81;border-color:#4f46e5}
+.dark .ai-explain .ai-title{color:#c7d2fe}
+.dark .ai-explain .ai-body{color:#c7d2fe}
+.dark .ai-explain .ai-body strong{color:#e2e8f0}
+.dark .ai-explain .ai-point{background:#1e1b4b;color:#a5b4fc}
 .dark .answer-content div[style*="eef2ff"]{background:#1e1b4b!important;border-left-color:#4f46e5!important;color:#c7d2fe!important}
 .dark .answer-content div[style*="f3e5f5"]{background:#2e1065!important;border-left-color:#a855f7!important;color:#e9d5ff!important}
 .dark .answer-resolution{background:#141820;color:#94a3b8}
@@ -354,7 +421,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .loading-box p{color:var(--text-secondary);font-size:13px}
 .spinner{border:3px solid var(--border-light);border-top:3px solid var(--primary);border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:0 auto 12px}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-.empty-state{text-align:center;padding:40px;color:var(--text-tertiary);font-size:14px}
+.empty-state{position:relative;text-align:center;padding:40px;color:var(--text-tertiary);font-size:14px}
+.empty-state::before{content:"";display:block;width:52px;height:52px;margin:0 auto 12px;background:currentColor;opacity:.2;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M22%2012h-6l-2%203h-4l-2-3H2'/%3E%3Cpath%20d='M5.45%205.11%202%2012v6a2%202%200%200%200%202%202h16a2%202%200%200%200%202-2v-6l-3.45-6.89A2%202%200%200%200%2016.76%204H7.24a2%202%200%200%200-1.79%201.11z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M22%2012h-6l-2%203h-4l-2-3H2'/%3E%3Cpath%20d='M5.45%205.11%202%2012v6a2%202%200%200%200%202%202h16a2%202%200%200%200%202-2v-6l-3.45-6.89A2%202%200%200%200%2016.76%204H7.24a2%202%200%200%200-1.79%201.11z'/%3E%3C/svg%3E") center/contain no-repeat}
 
 /* Question detail modal */
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.45);z-index:200;align-items:center;justify-content:center}
@@ -437,6 +505,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .q-flag:hover{filter:brightness(0.97)}
 /* 标记页科目卡片 */
 .mk-subj-row{display:flex;gap:8px;margin:10px 2px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.mk-section-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin:4px 2px 2px}
 .mk-chip{flex:0 0 auto;font-size:12px;padding:6px 12px;border-radius:99px;border:1px solid var(--border);background:var(--card);color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:var(--transition)}
 .mk-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
 .mk-chip:hover{border-color:var(--primary);color:var(--primary)}
@@ -449,9 +518,15 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .toolbar .tabs{gap:6px;padding:3px}
   .toolbar .tabs a{padding:6px 12px;font-size:13px}
   .home-cards{grid-template-columns:1fr;gap:10px}
+  #cardFree{grid-column:auto}
+  .home-more{flex-direction:column;align-items:stretch}
+  .home-more .btn{margin-left:0;width:100%}
   .home-card{padding:11px 16px}
   .subj-tags{grid-template-columns:1fr 1fr;gap:5px}
   .eb-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+  .eb-name{font-size:13px}
+  .eb-date{font-size:11px}
+  .eb-num{font-size:11px;padding:2px 7px}
   .eb-card{min-width:0}
   .btn{padding:10px 18px;font-size:14px;min-height:44px}
   .btn-row{flex-wrap:wrap;gap:8px}
@@ -463,6 +538,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .quiz-actions{flex-shrink:0;display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px}
   .quiz-actions .btn{padding:4px 8px;font-size:9px;flex-shrink:0;min-width:0;white-space:nowrap;border-radius:4px;line-height:1.3}
   .quiz-pill{height:10px;flex:1;min-width:40px}
+  .quiz-pill span{display:none}
   .quiz-info{gap:4px}
   .quiz-rate{font-size:10px}
   #qSubject{display:none}
@@ -478,7 +554,6 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .answer-panel-top{padding:10px 14px;font-size:13px}
   .answer-content{padding:12px 14px}
   .answer-result{font-size:13px;padding:8px 12px}
-  .answer-ai{font-size:12px;padding:12px 12px}
   .answer-resolution{font-size:12px;max-height:200px;padding:10px}
   .quiz-foot{position:fixed;bottom:0;left:0;right:0;background:var(--card);z-index:50;padding:5px 12px;padding-bottom:max(5px,env(safe-area-inset-bottom));text-align:center;border-top:1px solid var(--border)}
   .quiz-foot .btn{padding:6px 14px;font-size:12px;min-width:80px;min-height:32px}
@@ -514,6 +589,9 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .quiz-timer{padding:4px 9px;font-size:12px;min-width:64px}
   .mk-subj-row{margin:8px 0}
   .eb-top{flex-wrap:wrap;gap:8px}
+  .p-tname{width:40px;font-size:10px}
+  .p-trate{width:30px;font-size:9px}
+  .p-tdue{display:none}
 }
 </style>
 <script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script>
@@ -561,7 +639,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   <div class="home-cards">
     <!-- 自由刷题 -->
     <div class="home-card" id="cardFree">
-      <div class="hcard-icon" style="background:#eef2ff;color:#4f46e5">1</div>
+      <div class="hcard-icon ic-primary"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
       <h3>自由刷题</h3>
       <p class="hcard-desc">自选科目与来源，随机出题练习</p>
       <div class="src-toggle" id="srcToggle">
@@ -581,27 +659,28 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 
     <!-- 单科出题 -->
     <div class="home-card" onclick="openSmart('single')" style="cursor:pointer">
-      <div class="hcard-icon" style="background:#ecfdf5;color:#10b981">2</div>
+      <div class="hcard-icon ic-success"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></div>
       <h3>单科出题</h3>
       <p class="hcard-desc">指定单科、题量、来源，精准突破薄弱点</p>
     </div>
 
     <!-- 智能组卷 -->
     <div class="home-card" onclick="openSmart('paper')" style="cursor:pointer">
-      <div class="hcard-icon" style="background:#fef2f2;color:#ef4444">3</div>
+      <div class="hcard-icon ic-danger"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></div>
       <h3>智能组卷</h3>
       <p class="hcard-desc">100题/150分 · 计时180分 · 模拟真实法考</p>
     </div>
 
     <!-- 今日推荐（列序号4） -->
     <div class="home-card" id="cardReco">
-      <div class="hcard-icon" style="background:#fffbeb;color:#b45309">4</div>
+      <div class="hcard-icon ic-warning"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
       <h3>今日推荐</h3>
       <div id="recoBody" class="reco-body"></div>
       <button class="btn btn-blue" id="recoBtn" style="margin-top:10px;width:100%;font-size:12px" onclick="startReco()">开始推荐</button>
     </div>
   </div>
-  <div style="margin-top:14px;text-align:center">
+  <div class="home-more">
+    <span class="home-more-label">更多练习</span>
     <button class="btn btn-gray" onclick="startDiagnosis()" style="font-size:12px">快速诊断测验（15题，定位薄弱）</button>
   </div>
 </div>
@@ -625,7 +704,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       </div>
       <div class="quiz-actions">
         <span class="quiz-timer" id="qzTimer" style="display:none"></span>
-        <button class="btn btn-red" onclick="showSummary()">结束刷题</button>
+        <button class="btn quiz-end" onclick="showSummary()">结束刷题</button>
       </div>
     </div>
   </div>
@@ -674,7 +753,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <div class="eb-actions">
         <button class="btn btn-green" id="ebQuizBtn" style="padding:5px 12px;font-size:11px">从错题刷题</button>
         <button class="btn btn-gray" id="ebFlagFilter" style="padding:5px 12px;font-size:11px" onclick="toggleEbFlag()">仅看标记</button>
-        <button class="btn btn-red" onclick="if(confirm('确定清空？'))clearErrors()" style="padding:5px 12px;font-size:11px">清空</button>
+        <button class="btn btn-gray" id="ebClearBtn" onclick="armClearErrors(this)" style="padding:5px 12px;font-size:11px">清空</button>
       </div>
     </div>
     <div class="eb-grid" id="ebGrid"></div>
@@ -697,6 +776,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
         <button class="btn btn-green" id="mkQuizBtn" style="padding:5px 12px;font-size:11px">从标记题刷题</button>
       </div>
     </div>
+    <div class="mk-section-title">按科目筛选</div>
     <div class="mk-subj-row" id="mkSubjRow"></div>
     <div class="eb-grid" id="mkGrid"></div>
   </div>
@@ -1422,10 +1502,13 @@ function qR(){
   var cs=(q.correctAnswer||'').split(',').map(function(x){return x.trim()});
   o.forEach(function(opt,i){
     if(!q[k[i]])return;
-    var cl='';
-    if(rv){if(cs.indexOf(opt)!==-1)cl=' correct';else if(us.indexOf(opt)!==-1)cl=' wrong'}
+    var cl='',badge='';
+    if(rv){
+      if(cs.indexOf(opt)!==-1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}
+      else if(us.indexOf(opt)!==-1){cl=' wrong';badge='<span class="opt-badge no">✘</span>';}
+    }
     else if(us.indexOf(opt)!==-1)cl=' selected';
-    h+='<div class="quiz-opt'+cl+'" data-opt="'+opt+'" onclick="pO(this,\''+opt+'\','+q.type+')"><span class="opt-letter">'+opt+'</span><span>'+esc(q[k[i]])+'</span></div>';
+    h+='<div class="quiz-opt'+cl+'" data-opt="'+opt+'" onclick="pO(this,\''+opt+'\','+q.type+')"><span class="opt-letter">'+opt+'</span><span class="opt-txt">'+esc(q[k[i]])+'</span>'+badge+'</div>';
   });
   h+='</div>';
   // Buttons moved to fixed bottom bar
@@ -1463,25 +1546,34 @@ function rA(q,ok,ua){
   var uo=ua?ua.split(',').map(function(x){return x.trim()}):[];
 
   var h='';
-  h+='<div class="answer-result '+(ok?'ok':'bad')+'"><strong>'+(ok?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 回答正确！':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 你的答案 '+esc(ua)+' → 正确答案 '+esc(correct))+'</strong></div>';
+  if(ok){
+    h+='<div class="answer-result ok"><span class="ar-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><polyline points="20 6 9 17 4 12"/></svg></span><span class="ar-opt ar-opt-right">'+esc(correct)+'</span></div>';
+  }else{
+    h+='<div class="answer-result bad"><span class="ar-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'
+      +(ua?'<span class="ar-opt ar-opt-mine">'+esc(ua)+'</span>':'')
+      +'<svg class="ar-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>'
+      +'<span class="ar-opt ar-opt-right">'+esc(correct)+'</span></div>';
+  }
   var tn=topicName(q);
   h+='<div class="answer-stats">'+esc(q.difficulty||'?')+' | '+esc(q.lawName)+' · '+esc(q.source||'')+' | <span id="tpcSpan" style="color:#4f46e5;white-space:nowrap" title="'+esc(tn)+'">'+esc(tn)+'</span></div>';
 
-  // Pre-loaded AI data
+  // AI 讲解统一区块（预置分析 + DeepSeek 实时 合并）
   var aiData=AI[String(q.id)];
+  var did='ds-'+Date.now();
+  h+='<div class="ai-explain">';
+  h+='<div class="ai-head"><span class="ai-avatar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1v1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1v.27c.6.34 1 .99 1 1.73a2 2 0 1 1-2 0c0-.74.4-1.39 1-1.73V15H9a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1v-1H9a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h1V5.73A1.99 1.99 0 0 1 10 4a2 2 0 0 1 2-2z"/></svg></span><span class="ai-title">AI 讲解</span></div>';
+  h+='<div class="ai-body" id="aiBody-'+did+'">';
   if(aiData){
-    h+='<div style="background:#f3e5f5;padding:14px 16px;border-radius:6px;margin:10px 0;border-left:3px solid #9c27b0;font-size:13px;line-height:1.8">';
-    h+='<b style="color:#7b1fa2;font-size:14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> 预置分析</b>';
-    if(aiData.reasoning)h+='<div style="margin:6px 0;color:#333;white-space:pre-line;font-size:12px">'+esc(aiData.reasoning)+'</div>';
-    if(aiData.keyPoint)h+='<div style="padding:6px 10px;border-radius:4px;background:#e3f2fd;font-size:12px"><b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 考点：</b>'+esc(aiData.keyPoint)+'</div>';
-    h+='</div>';
+    if(aiData.reasoning)h+='<div class="ai-pre">'+esc(aiData.reasoning)+'</div>';
+    if(aiData.keyPoint)h+='<div class="ai-point">📌 考点：'+esc(aiData.keyPoint)+'</div>';
   }
 
-  // DeepSeek AI
-  var did='ds-'+Date.now();
-  h+='<div id="'+did+'" style="background:#eef2ff;padding:14px 16px;border-radius:6px;margin:10px 0;border-left:3px solid #4f46e5;font-size:13px;line-height:1.8">';
-  h+='<b style="color:#2b3fd4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek 正在思考这道题...</b><div class="spinner" style="width:20px;height:20px;border-width:2px;display:inline-block;margin-left:8px;vertical-align:middle"></div>';
-  h+='</div>';
+  // DeepSeek 实时讲解（统一区块内加载子容器）
+  var dsInit=DEEPSEEK_KEY
+    ? '<div class="ai-loading"><span>DeepSeek 正在补充讲解</span><span class="ai-dots"><i></i><i></i><i></i></span></div>'
+    : '<div class="ai-loading" style="color:var(--text-tertiary)">未配置 DeepSeek Key，无法生成 AI 讲解</div>';
+  h+='<div id="'+did+'" class="ai-ds">'+dsInit+'</div>';
+  h+='</div></div>';
 
   // AI chat dialog
   var cid='chat-'+Date.now();
@@ -1550,7 +1642,7 @@ function callDeepSeek(q, did, ua){
       var analysis=reply,topicFix='';
       var tm=reply.match(/<<<topic:([^>]+)>>>/);
       if(tm){topicFix=tm[1].trim();analysis=reply.replace(/<<<topic:[^>]+>>>/,'').trim()}
-      el.innerHTML='<b style="color:#2b3fd4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek AI</b><div style="margin-top:6px;font-size:13px;line-height:1.8">'+fmtReply(analysis)+'</div>';
+      el.innerHTML='<div class="ai-sub">DeepSeek 实时补充</div><div class="ai-pre">'+fmtReply(analysis)+'</div>';
       // Save AI topic fix — 每题只生成一次，已存在则复用，绝不覆盖（避免跨刷新/重开被重新抽取而改变）
       if(topicFix){
         topicFix=topicFix.split('.')[0].trim();
@@ -1575,14 +1667,14 @@ function callDeepSeek(q, did, ua){
         if(ts){var _disp=g.topicFixes[_id]||topicFix;ts.textContent=_disp;ts.title=_disp}
       }
     } else {
-      el.innerHTML='<b style="color:#999"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek</b> 暂未返回结果';
+      el.innerHTML='<div class="ai-empty">DeepSeek 暂未返回结果</div>';
     }
     // Auto-expand 原始解析 after AI reply
     aiCache[String(q.id)]=el.innerHTML;
     setTimeout(function(){var d=document.getElementById('resolveDetail');if(d)d.open=true;},200);
   }).catch(function(e){
     var el=document.getElementById(did);
-    if(el)el.innerHTML='<b style="color:#999"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> DeepSeek</b> 调用失败：'+esc(e.message||'网络错误');
+    if(el)el.innerHTML='<div class="ai-empty">DeepSeek 调用失败：'+esc(e.message||'网络错误')+'</div>';
   });
 }
 
@@ -1943,6 +2035,14 @@ function saveSyncToken(){
 }
 
 function clearErrors(){var d=GS();d.w=[];SS(d);rEB();debounceSync();}
+var _ebClearArmed=false,_ebClearTimer=null;
+function armClearErrors(btn){
+  if(_ebClearArmed){clearErrors();_ebClearArmed=false;if(_ebClearTimer)clearTimeout(_ebClearTimer);btn.textContent='清空';btn.classList.add('btn-gray');btn.classList.remove('btn-red');return;}
+  _ebClearArmed=true;
+  btn.textContent='确认清空？';
+  btn.classList.add('btn-red');btn.classList.remove('btn-gray');
+  _ebClearTimer=setTimeout(function(){_ebClearArmed=false;btn.textContent='清空';btn.classList.add('btn-gray');btn.classList.remove('btn-red');},3000);
+}
 
 function todayNewStudy(law){
   var d=GS(),fs=d.firstSeen||{};
