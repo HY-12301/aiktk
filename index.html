@@ -1119,7 +1119,7 @@ if(!D){loadData(function(d){if(d&&d.length){Q=d;D=true;updateHomeProgress();}},f
 
 // Load data - try gz first, then raw JSON
 // 题库版本号：更新题库文件后须同步 bump 此处与 sw.js 中的 BANK_VER
-var BANK_VER='2';
+var BANK_VER='3';
 var DATA_CACHE='ai-questions-'+BANK_VER;
 var IDB_KEY='qbank-'+BANK_VER;
 var idbDb=null;
@@ -2914,7 +2914,21 @@ function startDiagnosis(){
 
 </script>
 <script>
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+    if(!reg)return;
+    reg.addEventListener('updatefound',function(){
+      var sw=reg.installing;
+      if(!sw)return;
+      sw.addEventListener('statechange',function(){
+        if(sw.state==='installed' && navigator.serviceWorker.controller){
+          // 新版本 SW 已就绪：自动刷新以加载新题库/代码（做题进度在 localStorage 不受影响）
+          location.reload();
+        }
+      });
+    });
+  }).catch(function(e){console.warn('SW注册失败:',e);});
+}
 </script>
 </body>
 </html>
