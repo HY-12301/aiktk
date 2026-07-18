@@ -1,6 +1,6 @@
 var CACHE = 'aiktk-v2';
 // 题库版本号：更新题库文件后须同步 bump 此处与 index.html 中的 BANK_VER
-var BANK_VER = '1';
+var BANK_VER = '2';
 // 保留题库解析缓存(ai-questions)，避免每次重新解析 40MB
 var KEEP = [CACHE, 'ai-questions-'+BANK_VER];
 var FILES = [
