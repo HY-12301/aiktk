@@ -926,48 +926,18 @@ function mkM(){return{ef:2.5,interval:0,reps:0,nextReview:null,lastReview:null,t
 // 章节名白名单：用题库里「干净规范的段」自动建成标准名集合（零人工）。
 // 规则：排除垃圾标签、拼接连词(及其/与相关)、半截句、答案复述、超长描述后缀 → 其余视为合法章节名。
 // 脏长描述若包含某标准短名则归一过去；纯垃圾/半截归「其他」；合法章节(含低频、长罪名)保留。
-var TOPIC_JUNK=/^(other|其他|a错误|b错误|c错误|d错误|ab选项|abcd选项|本题|选项[abcd]?：|x选项|答案|解析|题目|题干)/i;
-var TOPIC_DIRTY=/以及相关犯罪|及其关联犯罪|与其他犯罪|和相关犯罪|认定及其在|的认定及其|及其相应|相应责任|责任承担问题|相应犯罪|关联犯罪的认定|与相关犯罪的关系|应该选择.{0,3}选项|本题选|指根据|有或全无|该办法属于|下列说法正确的是|关于.{0,6}的说法/;
-var CHAPTER_WL=null,CHAPTER_SET=null;
-function segOf(q){
-  var raw=String(q.topic||'').trim();
-  var seg=raw.indexOf('.')>=0?raw.split('.').slice(1).join('.').trim():raw;
-  if(!seg)seg=raw.split('.')[0];
-  return seg.split(/[；;，,。\n]/)[0].trim();
-}
-function isCleanSeg(s){
-  if(!s||TOPIC_JUNK.test(s)||TOPIC_DIRTY.test(s))return false;
-  if(s.length<2||s.length>40)return false;
-  if(/与其?|以及相关|与相关|以及其|与相关犯罪/.test(s))return false;
-  if(/的认定|的原则与|若干问题|概述$/.test(s))return false;
-  if(/[与及和]$/.test(s)||/其$/.test(s))return false;
-  return true;
-}
-function buildWhitelist(){
-  if(!Q||!Q.length){CHAPTER_WL=[];CHAPTER_SET=new Set();return;}
-  var m={};
-  for(var i=0;i<Q.length;i++){var s=segOf(Q[i]);if(isCleanSeg(s))m[s]=1;}
-  CHAPTER_WL=Object.keys(m);CHAPTER_SET=new Set(CHAPTER_WL);
-}
+// 题库 topic 已烘焙为干净章节名（非「其他」即 chapters_extracted.txt 可识别标签）
+// 网页不再二次归一，直接信任数据；仅对字面垃圾做「其他」兜底
 function topicName(q){
-  var t=q.topic||'';var ln=q.lawName||'';
-  if(ln&&t.indexOf(ln+'.')===0)t=t.slice(ln.length+1);
-  t=t.trim();
-  if(!t)return '其他';
+  var t=String(q.topic||'').trim();
+  var ln=q.lawName||'';
+  if(ln&&t.indexOf(ln+'.')===0)t=t.slice(ln.length+1).trim();
   t=t.split(/[；;，,。\n]/)[0].trim();
   if(!t)return '其他';
-  if(TOPIC_JUNK.test(t))return '其他';
-  if(CHAPTER_WL===null)buildWhitelist();
-  if(CHAPTER_SET&&CHAPTER_SET.has(t))return t;
-  // 脏拼接/答案复述/半截/超长描述：尝试归一到包含的标准名，否则归其他（取题面最早出现、同位置取最长）
-  if(TOPIC_DIRTY.test(t)||t.length>12||/[与及和]$/.test(t)||/其$/.test(t)){
-    var hit=null,hitPos=1e9,hitLen=0;
-    if(CHAPTER_WL)for(var i=0;i<CHAPTER_WL.length;i++){var w=CHAPTER_WL[i];if(w.length<3)continue;var p=t.indexOf(w);if(p<0)continue;if(p<hitPos||(p===hitPos&&w.length>hitLen)){hitPos=p;hit=w;hitLen=w.length;}}
-    return hit||'其他';
-  }
+  if(/^(other|其他|a错误|b错误|c错误|d错误|ab选项|abcd选项|本题|选项[abcd]?:|x选项|答案|解析|题目|题干)$/i.test(t))return '其他';
   return t;
 }
-function topicKey(q){return (q.lawName||'')+'.'+topicName(q)}
+function topicKey(q){return (q.lawName||'')+'.'+topicName(q);}
 function normAns(a){return String(a==null?'':a).split(',').map(function(x){return x.trim()}).filter(Boolean).sort().join(',')}
 function upKW(q,ok){
   var d=GS(),tk=topicKey(q),rec=d.kw[tk]||{w:0,t:0,ts:''};
