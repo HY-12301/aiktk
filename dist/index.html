@@ -1123,9 +1123,19 @@ if(!D){loadData(function(d){if(d&&d.length){Q=d;D=true;updateHomeProgress();}},f
 
 // Load data - try gz first, then raw JSON
 // 题库版本号：更新题库文件后须同步 bump 此处与 sw.js 中的 BANK_VER
-var BANK_VER='5';
+var BANK_VER='6';
 var DATA_CACHE='ai-questions-'+BANK_VER;
 var IDB_KEY='qbank-'+BANK_VER;
+// 题库内容签名：检测本地缓存是否被旧数据污染（不依赖 BANK_VER）。更新题库后须同步维护。
+var BANK_SIG={n:17374,others:0,sec:{'审判程序':329,'公司法':280,'分则·侵犯财产罪':80,'证据':126,'行政诉讼':185,'犯罪构成':197}};
+function bankSigOk(qs){
+  if(!qs||!qs.length||qs.length!==BANK_SIG.n) return false;
+  var others=0,sec={};
+  for(var i=0;i<qs.length;i++){var t=qs[i].topic||'';if(t==='其他')others++;sec[t]=(sec[t]||0)+1;}
+  if(others!==BANK_SIG.others) return false;
+  for(var k in BANK_SIG.sec){if((sec[k]||0)!==BANK_SIG.sec[k])return false;}
+  return true;
+}
 var idbDb=null;
 function idbOpen(done){
   if(!('indexedDB' in window)){done(null);return;}
@@ -1154,10 +1164,20 @@ function idbPut(data){
     }catch(e){}
   });
 }
+function idbClear(){
+  idbOpen(function(db){ if(!db)return;
+    try{
+      var tx=db.transaction('qbank','readwrite');
+      tx.objectStore('qbank').delete(IDB_KEY);
+    }catch(e){}
+  });
+}
 function loadData(cb, errCb){
+  errCb = errCb || function(){};
   function got(d){ idbPut(d); cb(d); }
-  function doFetch(c,err){
-    fetch('all_questions.json.gz').then(function(r){
+  function doFetch(nocache){
+    var url='all_questions.json.gz'+(nocache?('?cb='+Date.now()):'');
+    fetch(url).then(function(r){
       if(!r.ok)throw new Error('HTTP '+r.status);
       try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
       catch(e){
@@ -1169,10 +1189,11 @@ function loadData(cb, errCb){
       }
     }).then(function(txt){
       var data=JSON.parse(txt);
-      if(c){c.put('q',new Response(txt))}
-      got(data);
+      if(bankSigOk(data)){ got(data); }
+      else { idbClear(); if(!nocache){ doFetch(true); } else { errCb(); } }
     }).catch(function(e1){
-      fetch('https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz').then(function(r){
+      var jurl='https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz'+(nocache?('?cb='+Date.now()):'');
+      fetch(jurl).then(function(r){
         if(!r.ok)throw new Error('HTTP '+r.status);
         try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
         catch(e){
@@ -1182,19 +1203,18 @@ function loadData(cb, errCb){
             return new Response(ds.readable).text();
           });
         }
-      }).then(function(txt){got(JSON.parse(txt))}).catch(function(e2){err(err||e2||e1)});
+      }).then(function(txt){
+        var data=JSON.parse(txt);
+        if(bankSigOk(data)){ got(data); } else { idbClear(); errCb(); }
+      }).catch(function(e2){ errCb(); });
     });
   }
   // 优先读 IndexedDB 已解析对象（二次打开近乎零解析）
-  idbGet(function(cached){ cb(cached); }, function(){
-    if('caches' in window){
-      caches.open(DATA_CACHE).then(function(cache){
-        cache.match('q').then(function(r){
-          if(r){r.json().then(got);return}
-          doFetch(cache,function(){doFetch(null)});
-        });
-      }).catch(function(){doFetch(null)});
-    }else{doFetch(null)}
+  idbGet(function(cached){
+    if(bankSigOk(cached)){ cb(cached); return; } // 签名对，直接用
+    idbClear(); doFetch(true); // 签名不对（旧/脏）→ 清掉强制重拉
+  }, function(){
+    doFetch(false);
   });
 }
 
