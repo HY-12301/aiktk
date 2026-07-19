@@ -1153,7 +1153,7 @@ function idbPut(data){
 function loadData(cb, errCb){
   function got(d){ idbPut(d); cb(d); }
   function doFetch(c,err){
-    fetch('https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz').then(function(r){
+    fetch('all_questions.json.gz').then(function(r){
       if(!r.ok)throw new Error('HTTP '+r.status);
       try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
       catch(e){
@@ -1168,7 +1168,7 @@ function loadData(cb, errCb){
       if(c){c.put('q',new Response(txt))}
       got(data);
     }).catch(function(e1){
-      fetch('all_questions.json.gz').then(function(r){
+      fetch('https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz').then(function(r){
         if(!r.ok)throw new Error('HTTP '+r.status);
         try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
         catch(e){
