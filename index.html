@@ -164,6 +164,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ar-mark.bad{color:#b91c1c}
 .dark .ar-mark.ok{color:#6ee7b7}
 .dark .ar-mark.bad{color:#f87171}
+.ar-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:18px;padding:0 6px;font-size:18px;line-height:1;color:#9ca3af;flex-shrink:0}
+.dark .ar-arrow{color:#94a3b8}
 .dark .answer-result.ok{background:#064e3b;border-color:#065f46}
 .dark .answer-result.bad{background:#220808;border-color:#7f1d1d}
 .dark .ar-opt{color:#cbd5e1}
@@ -1121,7 +1123,7 @@ if(!D){loadData(function(d){if(d&&d.length){Q=d;D=true;updateHomeProgress();}},f
 
 // Load data - try gz first, then raw JSON
 // 题库版本号：更新题库文件后须同步 bump 此处与 sw.js 中的 BANK_VER
-var BANK_VER='4';
+var BANK_VER='5';
 var DATA_CACHE='ai-questions-'+BANK_VER;
 var IDB_KEY='qbank-'+BANK_VER;
 var idbDb=null;
@@ -1459,9 +1461,10 @@ function rA(q,ok,ua){
   var rightHtml='';
   var multi=ca.length>1;
   ca.forEach(function(o){var missed=uo.indexOf(o)===-1;rightHtml+='<span class="ar-opt '+((multi&&missed)?'ca-miss':'ca-on')+'">'+esc(o)+'</span>';});
+  var arrow='<span class="ar-arrow">→</span>';
   var inner=ok
     ?'<span class="ar-mark ok">✓</span>'+rightHtml
-    :'<span class="ar-mark bad">✗</span>'+leftHtml+rightHtml;
+    :'<span class="ar-mark bad">✗</span>'+leftHtml+arrow+rightHtml;
   var h='<div class="answer-result '+(ok?'ok':'bad')+'">'+inner+'</div>';
   var tn=topicName(q);
   h+='<div class="answer-stats">'+esc(q.difficulty||'?')+' | '+esc(q.lawName)+' · '+esc(q.source||'')+' | <span id="tpcSpan" style="color:#4f46e5;white-space:nowrap" title="'+esc(tn)+'">'+esc(tn)+'</span></div>';

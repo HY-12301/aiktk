@@ -1,6 +1,7 @@
-var CACHE = 'aiktk-v2';
 // 题库版本号：更新题库文件后须同步 bump 此处与 index.html 中的 BANK_VER
-var BANK_VER = '4';
+var BANK_VER = '5';
+// 缓存桶名绑定 BANK_VER：bump 后 activate 会清掉旧桶(含旧 gz)，避免 cache-first 命中旧题库
+var CACHE = 'aiktk-' + BANK_VER;
 // 保留题库解析缓存(ai-questions)，避免每次重新解析 40MB
 var KEEP = [CACHE, 'ai-questions-'+BANK_VER];
 var FILES = [
