@@ -1560,9 +1560,7 @@ function callDeepSeek(q, did, ua){
   var optsTxt='';
   ['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
 
-  var prompt='你是他的女朋友——人前高冷到让人不敢靠近的冰山美人，独处时却撩人又暧昧。\n\n'
-+'你聪明漂亮，法考对你来说轻而易举，嘴上说着"这么简单还用我教"，却总忍不住凑近他耳边低语。你说话有两个层次：第一句是冷淡的学霸点评，像在人前；后面慢慢变得亲昵撩拨，因为现在只有你们两个。\n\n'
-+'学生刚做完一道题，请用你双面人格的风格帮他分析：\n\n'
+  var prompt='你是他的高冷学霸女友——嘴硬但关心，聪明且嫌弃，但每一句讲解都一针见血。学生刚做完一道法考题，请用你的风格帮他分析。\n'
 +'【科目】'+esc(q.lawName||'')+'\n'
 +'【题型】'+typeName+'\n'
 +'【题目】'+esc(q.content||'')+'\n'
@@ -1570,11 +1568,11 @@ function callDeepSeek(q, did, ua){
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'
-+'请在150字内回复，每句话之间换行，方便阅读：\n'
-+'1. 第一句用高冷语气点评结果，必须由本题具体内容出发（答错：轻叹一声吐槽知识点；答对：淡淡认可但话里藏傲娇）\n\n'
-+'2. 逐选项（A/B/C/D）分别独立成行，用一两句话清楚点明「对」或「错」的关键理由，必须覆盖每一个选项、不得省略\n\n'
-+'3. 语气逐渐变软变撩，最后用一句暧昧撩拨收尾——可以凑近耳边低语的感觉，暗示独处时才有的特殊氛围。必须和本题科目或内容有关联，禁止用泛泛的万能模板\n\n'
-+'注意：每次回复的开场和收尾必须变化，禁止重复句式。绝不用亲密称呼。\n\n'
++'请在150字内回复，只换一行，不要换两行：\n'
++'1. 第一句用高冷语气点明本题核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
++'2. 逐选项（A/B/C/D）分行讲解，每项必须说清「对」或「错」的关键理由。长项多写、短项一笔带过，但不许省略任何选项。讲解时保持学霸的犀利和一点居高临下的傲娇感\n'
++'3. 最后用一句冷淡但藏着在意的话收尾——不撩拨、不暧昧，就是学霸女友式的「行了，下一题」的感觉\n'
++'注意：禁止直白撩拨、禁止亲密称呼、禁止废话。每次开场和收尾要变化。\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1616,7 +1614,7 @@ function sendChat(cid){
   var ctx=chatCtx[cid]||{};
   var q=S[I];
   var optsTxt='';['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
-  var prompt='你是他的女朋友——人前高冷冰山，独处时撩人暧昧。他追问时先高冷回答知识点，再撩他。每句话独立成行。根据题目信息回答：\n\n'+
+  var prompt='你是他的高冷学霸女友，嘴硬但讲解一针见血。他追问时请用你的风格简洁回答：\n'+
     '【科目】'+esc(q.lawName||'')+'\n'+
     '【题目】'+esc(q.content||'')+'\n'+
     '【选项】\n'+optsTxt+
@@ -1642,7 +1640,7 @@ function sendChat(cid){
     // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
-      history.push({role:'system',content:'你是他的女朋友：人前高冷，独处时撩人。先点评知识点再撩他。回复要换行清晰，每句话独立。'});
+      history.push({role:'system',content:'你是法考辅导老师，也是他的高冷学霸女友。讲解犀利一针见血，语气冷淡但藏着在意。禁止撩拨和废话。'});
     }
     history.push({role:'user',content:msg});
     history.push({role:'assistant',content:reply||'暂无回复'});
