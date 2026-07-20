@@ -1180,24 +1180,15 @@ function loadData(cb, errCb){
   errCb = errCb || function(){};
   function got(d){ idbPut(d); cb(d); }
   function doFetch(nocache){
-    var url='all_questions.json.gz'+(nocache?('?cb='+Date.now()):'');
-    fetch(url).then(function(r){
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
-      catch(e){
-        return r.arrayBuffer().then(function(buf){
-          var arr=new Uint8Array(buf),ds=new DecompressionStream('gzip');
-          var w=ds.writable.getWriter();w.write(arr);w.close();
-          return new Response(ds.readable).text();
-        });
-      }
-    }).then(function(txt){
-      var data=JSON.parse(txt);
-      if(bankSigOk(data)){ got(data); }
-      else { idbClear(); if(!nocache){ doFetch(true); } else { errCb(); } }
-    }).catch(function(e1){
-      var jurl='https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz'+(nocache?('?cb='+Date.now()):'');
-      fetch(jurl).then(function(r){
+    // 多源竞速：github.io(走 SW) 与 jsDelivr(境外边缘, 国内通常更快) 同时发起，
+    // 谁先返回且 bankSigOk 通过就用谁；两个都失败才走 errCb。
+    var settled=false, failed=0;
+    function done(d){ if(settled)return; settled=true; got(d); }
+    function fail(){ failed++; if(failed>=2){ errCb(); } }
+    function trySource(base, raw){
+      // raw=true 时绕过所有缓存(?cb); 否则按版本走边缘缓存(?v=BANK_VER), 随版本自动刷新
+      var url=base+(raw?('?cb='+Date.now()):('?v='+BANK_VER));
+      return fetch(url).then(function(r){
         if(!r.ok)throw new Error('HTTP '+r.status);
         try{return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text()}
         catch(e){
@@ -1209,9 +1200,11 @@ function loadData(cb, errCb){
         }
       }).then(function(txt){
         var data=JSON.parse(txt);
-        if(bankSigOk(data)){ got(data); } else { idbClear(); errCb(); }
-      }).catch(function(e2){ errCb(); });
-    });
+        if(bankSigOk(data)){ done(data); } else { throw new Error('sig-mismatch'); }
+      }).catch(function(){ fail(); });
+    }
+    trySource('all_questions.json.gz', nocache);
+    trySource('https://cdn.jsdelivr.net/gh/HY-12301/aiktk@main/all_questions.json.gz', nocache);
   }
   // 优先读 IndexedDB 已解析对象（二次打开近乎零解析）
   idbGet(function(cached){
