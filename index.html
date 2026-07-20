@@ -1565,7 +1565,7 @@ function callDeepSeek(q, did, ua){
     if(!el)return;
     var reply=data.choices&&data.choices[0]?data.choices[0].message.content:'';
     if(reply){
-      el.innerHTML='<div class="ai-sub">DeepSeek 实时补充</div><div class="ai-pre">'+fmtReply(reply)+'</div>';
+      el.innerHTML='<div class="ai-pre">'+fmtReply(reply)+'</div>';
     } else {
       el.innerHTML='<div class="ai-empty">DeepSeek 暂未返回结果</div>';
     }
