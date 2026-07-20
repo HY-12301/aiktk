@@ -1297,13 +1297,26 @@ function startQuiz(){
 }
 
 function doS(s,z,m){
+  // === 出题参数(命名常量，方便统一调参) ===
+  var SESSION_SIZE=100;          // 每场题数
+  var MIN_NEW=70;               // 新题下限
+  var REVIEW_RELEARN=12;        // 复习位: 重学(降级回炉的题)
+  var REVIEW_OVERDUE=12;        // 复习位: 到期巩固(最该复习的题)
+  var REVIEW_LEARNING=4;        // 复习位: 学习中新题
+  var REVIEW_WEAK=2;            // 复习位: 章节薄弱
+  var FILL_RELEARN_MAX=50;      // 补位重学上限(防垄断,放 overdue/weak 等其他题型进来)
+  var KW_WEAKNESS_THRESH=0.25;  // 章节薄弱判定阈值
+  var MASTERED_EF=2.5;          // 已掌握: 最低 EF
+  var MASTERED_INTERVAL=30;     // 已掌握: 最短间隔(天)
+  var MASTERED_REPS=3;          // 已掌握: 最少复习次数
+  // ==============================
   sessionSubjects=s;
   var c=[];if(z)c.push('真题');if(m)c.push('模拟题');
   var pool=Q.filter(function(q){return s.indexOf(q.lawName)!==-1&&c.indexOf(q.source)!==-1});
   if(!pool.length){alert('无匹配题目');return}
   // 过滤已掌握的题，保留到 masteredPool 供补足用
   var masteredPool=[];
-  pool=pool.filter(function(q){var mem=geM(q.id);if(mem&&mem.ef>=2.5&&mem.interval>=30&&mem.reps>=3){masteredPool.push(q);return false;}return true;});
+  pool=pool.filter(function(q){var mem=geM(q.id);if(mem&&mem.ef>=MASTERED_EF&&mem.interval>=MASTERED_INTERVAL&&mem.reps>=MASTERED_REPS){masteredPool.push(q);return false;}return true;});
   if(!pool.length){alert('当前科目已全部掌握！');return}
 
   // === Optimized stratified sampling ===
@@ -1327,7 +1340,7 @@ function doS(s,z,m){
       else {
         var tk=topicKey(q),ws=kwWeakness(tk);
         // weak 桶只收「已做过且章节薄弱」的复习题
-        if(ws>0.25)bucket.weak.push(q);
+        if(ws>KW_WEAKNESS_THRESH)bucket.weak.push(q);
         else bucket.seen.push(q);
       }
     }
@@ -1338,28 +1351,34 @@ function doS(s,z,m){
   bucket.relearn.sort(function(a,b){return daysBetween(geM(a.id).nextReview,nowS)-daysBetween(geM(b.id).nextReview,nowS)});
   bucket.learning.sort(function(a,b){return (geM(b.id).learningStepIdx||0)-(geM(a.id).learningStepIdx||0)});
   bucket.weak.sort(function(a,b){return kwWeakness(topicKey(b))-kwWeakness(topicKey(a))});
-  shuffle(bucket.unseen);
   shuffle(bucket.seen);
 
   // Dynamic allocation ratios
   // === 固定 100 题，≥70 新题，顺序随机 ===
-  var SESSION_SIZE=100,MIN_NEW=70;
   shuffle(bucket.unseen);
   var news=bucket.unseen.slice(0,MIN_NEW);
-  var reviews=bucket.overdue.slice(0,9)
-    .concat(bucket.relearn.slice(0,9))
-    .concat(bucket.learning.slice(0,8))
-    .concat(bucket.weak.slice(0,4));
+  // 重学12 + 到期巩固12 + 学习4 + 薄弱2 = 30 复习位(各桶按比例分配)
+  var rUsed={};
+  function pushND(arr,cap){var out=[];for(var i=0;i<arr.length&&out.length<cap;i++){var id=String(arr[i].id);if(!rUsed[id]){rUsed[id]=1;out.push(arr[i]);}}return out;}
+  var reviews=pushND(bucket.relearn,REVIEW_RELEARN)
+    .concat(pushND(bucket.overdue,REVIEW_OVERDUE))
+    .concat(pushND(bucket.learning,REVIEW_LEARNING))
+    .concat(pushND(bucket.weak,REVIEW_WEAK));
   var result=news.concat(reviews);
-  // 不足100按优先级补足：剩余未做 → 错题 → 已做不急 → 已掌握
+  // 不足100按优先级补足：剩余新题 → 重学(上限70) → 到期巩固 → 到期学习 → 薄弱 → 错题本 → 曾错已做 → 已做不急(含做对,仅兜底) → 已掌握
   if(result.length<SESSION_SIZE){
     var used={};result.forEach(function(q){used[String(q.id)]=1});
     function pullFrom(arr){for(var i=0;i<arr.length&&result.length<SESSION_SIZE;i++){var id=String(arr[i].id);if(!used[id]){result.push(arr[i]);used[id]=1;}}}
-    pullFrom(bucket.unseen);                  // 更多新题优先(复习题不足时)
-    pullFrom(bucket.weak);                    // 薄弱已做题(复习优先于普通已做)
+    pullFrom(bucket.unseen);                  // 更多新题优先
+    // 重学优先：补位重学上限70(防垄断，放 overdue/weak 等其他题型进来)
+    pullFrom(pool.filter(function(q){var m=geM(q.id);return m&&m.phase==='relearning'&&!used[String(q.id)];}).slice(0,FILL_RELEARN_MAX));
+    pullFrom(bucket.overdue);                 // 到期巩固(分桶时已排到期紧急度)
+    pullFrom(bucket.learning);                // 到期学习(分桶时已按 stepIdx 排)
+    pullFrom(bucket.weak);                    // 薄弱已做
     var wrongIds={};(GS().w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
-    pullFrom(pool.filter(function(q){return wrongIds[String(q.id)]&&!used[String(q.id)];}));
-    pullFrom(bucket.seen);                    // 已做不急(含做对，仅兜底)
+    pullFrom(pool.filter(function(q){return wrongIds[String(q.id)]&&!used[String(q.id)];}));  // 错题本
+    pullFrom(bucket.seen.filter(function(q){var m=geM(q.id);return m&&m.totalWrong>0;}));      // 曾错已做
+    pullFrom(bucket.seen);                    // 其余已做(含一直做对，仅兜底)
     pullFrom(masteredPool);
   }
   shuffle(result);
