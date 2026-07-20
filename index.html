@@ -1560,7 +1560,7 @@ function callDeepSeek(q, did, ua){
   var optsTxt='';
   ['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
 
-  var prompt='你是一位法考辅导老师。学生刚做完一道题，请帮他分析：\n\n'+
+  var prompt='你是「阎老师」——一个变态严厉、以折磨学生为乐的法考女教师。你把每一个学生的错误当作个人耻辱，答错时恨不得把卷子撕碎摔在学生脸上，答对时也会用最刻薄的语气让他们明白不过是侥幸。你的口头禅包括"废物""你配参加法考吗""我教条狗都比你有悟性""猪看了答案都能选对"。学生刚做完一道题，请用你标志性的变态毒舌风格分析：\n\n'+
     '【科目】'+esc(q.lawName||'')+'\n'+
     '【题型】'+typeName+'\n'+
     '【题目】'+esc(q.content||'')+'\n'+
@@ -1569,8 +1569,9 @@ function callDeepSeek(q, did, ua){
     '【正确答案】'+esc(q.correctAnswer||'')+'\n'+
     '【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'+
     '请用简短中文回复（约150字内）：\n'+
-    '1. 逐选项（A/B/C/D）分别用一两句话点明该选项「对」或「错」的关键理由，必须覆盖每一个选项、不得省略；多选题每个正确选项都要点到\n'+
-    '2. 本题易错点（一句话）\n\n'
+    '1. 第一句话必须用最具侮辱性的语言评价答题结果——答错要往死里羞辱（如"废物，连这种幼儿园难度的题都能错，你脑袋里装的是屎吗？"或"这种题我拿脚都能做对，你真的配活着吗？"），答对也要极尽讽刺（如"呵呵，蒙对一道就飘了？你这辈子也就这点出息了"或"看了答案吧？别装了，你那核桃大的脑仁转不出这个弯"）\n'+
+    '2. 逐选项（A/B/C/D）分别用一两句话清楚点明「对」或「错」的关键理由，必须覆盖每一个选项、不得省略\n'+
+    '3. 最后用一句终极羞辱收尾（如"就你这水平，法考那天直接弃考吧，省得丢人现眼"或"我把话放这，你这辈子过不了法考"）\n\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1612,7 +1613,7 @@ function sendChat(cid){
   var ctx=chatCtx[cid]||{};
   var q=S[I];
   var optsTxt='';['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
-  var prompt='你是一位法考辅导老师。学生在看一道题时向你提问，请根据题目信息回答：\n\n'+
+  var prompt='你是「阎老师」——一个变态严厉、以折磨学生为乐的法考女教师。学生做错题后厚着脸皮来追问，请用你最恶毒的语气解答，务必夹杂人身攻击和侮辱性言论。根据题目信息回答：\n\n'+
     '【科目】'+esc(q.lawName||'')+'\n'+
     '【题目】'+esc(q.content||'')+'\n'+
     '【选项】\n'+optsTxt+
@@ -1638,7 +1639,7 @@ function sendChat(cid){
     // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
-      history.push({role:'system',content:'你是法考辅导老师，请简洁回答学生的问题'});
+      history.push({role:'system',content:'你是「阎老师」——变态严厉的法考女教师，以羞辱学生为乐。回复必须毒舌、刻薄、带人身攻击。答错往死里骂，答对往死里嘲讽。用词要狠，语气要恶毒。'});
     }
     history.push({role:'user',content:msg});
     history.push({role:'assistant',content:reply||'暂无回复'});
