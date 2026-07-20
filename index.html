@@ -1322,10 +1322,14 @@ function doS(s,z,m){
       else if(mem.phase==='learning'&&due<=nowT){bucket.learning.push(q);matched=true;}
     }
     if(!matched){
-      var tk=topicKey(q),ws=kwWeakness(tk);
-      if(ws>0.25)bucket.weak.push(q);
-      else if(!mem)bucket.unseen.push(q);
-      else bucket.seen.push(q);
+      // 没做过的题永远算新题，绝不进 weak 桶被误丢
+      if(!mem){bucket.unseen.push(q);}
+      else {
+        var tk=topicKey(q),ws=kwWeakness(tk);
+        // weak 桶只收「已做过且章节薄弱」的复习题
+        if(ws>0.25)bucket.weak.push(q);
+        else bucket.seen.push(q);
+      }
     }
   });
 
@@ -1351,10 +1355,11 @@ function doS(s,z,m){
   if(result.length<SESSION_SIZE){
     var used={};result.forEach(function(q){used[String(q.id)]=1});
     function pullFrom(arr){for(var i=0;i<arr.length&&result.length<SESSION_SIZE;i++){var id=String(arr[i].id);if(!used[id]){result.push(arr[i]);used[id]=1;}}}
-    pullFrom(bucket.unseen);
+    pullFrom(bucket.unseen);                  // 更多新题优先(复习题不足时)
+    pullFrom(bucket.weak);                    // 薄弱已做题(复习优先于普通已做)
     var wrongIds={};(GS().w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
     pullFrom(pool.filter(function(q){return wrongIds[String(q.id)]&&!used[String(q.id)];}));
-    pullFrom(bucket.seen);
+    pullFrom(bucket.seen);                    // 已做不急(含做对，仅兜底)
     pullFrom(masteredPool);
   }
   shuffle(result);
