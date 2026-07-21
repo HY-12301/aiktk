@@ -1104,7 +1104,7 @@ function togSrc(type){
 (function(){
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
-  var subjKeyOrder=['MF','MS','SJF','SGF','XF','XS','XZF','LLF']; // 左列：民法/民诉/商经法/三国法；右列：刑法/刑诉/行政法/理论法
+  var subjKeyOrder=['MF','XF','MS','XS','SJF','XZF','SGF','LLF']; // 2列网格按行填充 → 左列：民法/民诉/商经法/三国法；右列：刑法/刑诉/行政法/理论法
   var h='';
   subjKeyOrder.forEach(function(k){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
