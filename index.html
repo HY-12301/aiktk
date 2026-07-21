@@ -138,12 +138,16 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-opt.correct .opt-letter{background:var(--success);border-color:var(--success);color:#fff}
 .quiz-opt.wrong{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
 .quiz-opt.wrong .opt-letter{background:var(--danger);border-color:var(--danger);color:#fff}
+.quiz-opt.missed{border-color:var(--warning);color:var(--warning);background:var(--warning-soft)}
+.quiz-opt.missed .opt-letter{background:var(--warning);border-color:var(--warning);color:#fff}
 .quiz-opt .opt-txt{flex:1;min-width:0}
 .opt-badge{margin-left:10px;font-size:15px;font-weight:700;line-height:1;flex-shrink:0}
 .opt-badge.ok{color:var(--success-600)}
 .opt-badge.no{color:var(--danger-600)}
+.opt-badge.miss{color:var(--warning)}
 .dark .opt-badge.ok{color:#3fbf7f}
 .dark .opt-badge.no{color:#ff6b61}
+.dark .opt-badge.miss{color:#e8a040}
 
 /* Nav bar inside quiz-card */
 .quiz-action-nav{display:flex;justify-content:center;gap:12px;padding:10px 0;border-top:1px solid var(--border-light);margin-top:12px}
@@ -307,6 +311,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-opt.selected{border-color:#6078a8;background:#1c2434;color:#efe9dc}
 .dark .quiz-opt.correct{background:#143420;border-color:#2f8a5a;color:#3fbf7f}
 .dark .quiz-opt.wrong{background:#3c1814;border-color:#a33;color:#ff6b61}
+.dark .quiz-opt.missed{background:#3a2606;border-color:#b8751f;color:#e8a040}
 .dark .quiz-opt .opt-letter{background:#3a342b;color:#efe9dc!important}
 .dark .quiz-question{color:#fff!important}
 .dark .quiz-stuff{background:#1a1611;color:#b8b0a2!important;border-color:#7fb0d8}
@@ -1445,7 +1450,7 @@ function qR(){
     if(!q[k[i]])return;
     var cl='',badge='';
     if(rv){
-      if(cs.indexOf(opt)!==-1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}
+      if(cs.indexOf(opt)!==-1){if(us.indexOf(opt)!==-1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}else{cl=' missed';badge='<span class="opt-badge miss">漏</span>';}}
       else if(us.indexOf(opt)!==-1){cl=' wrong';badge='<span class="opt-badge no">✘</span>';}
     }
     else if(us.indexOf(opt)!==-1)cl=' selected';
