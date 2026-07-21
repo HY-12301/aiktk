@@ -114,25 +114,26 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-end:hover{color:var(--text);border-color:var(--border)}
 .dark .quiz-end{background:transparent;color:#b8b0a2;border-color:#322c24}
 .dark .quiz-end:hover{color:#efe9dc;border-color:#4a4339}
-.quiz-pill{flex:1;height:18px;border-radius:99px;background:var(--border-light);display:flex;overflow:hidden;font-size:11px;font-weight:600;flex-shrink:0;min-width:80px}
-.pill-good{background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;transition:width .25s}
-.pill-bad{background:#cbd5e1;color:#fff;display:flex;align-items:center;justify-content:center;transition:width .25s}
+.quiz-pill{flex:1;height:3px;border-radius:2px;background:var(--border-light);display:flex;overflow:hidden;flex-shrink:0;min-width:60px}
+.pill-good{background:var(--success);transition:width .25s}
+.pill-bad{background:var(--warning);transition:width .25s}
+.pill-good span,.pill-bad span{display:none}
 .quiz-rate{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
 .quiz-wrap{display:flex;gap:0;min-height:calc(100vh - 180px)}
 .quiz-left{flex:1;min-width:0;background:var(--card);overflow-y:auto}
 .quiz-right{flex:1;min-width:0;background:var(--card);border-left:1px solid var(--border-light);overflow-y:auto;position:relative}
 
 .quiz-card{padding:22px 26px}
-.quiz-stuff{background:var(--border-light);padding:12px 16px;border-radius:10px;border-left:4px solid var(--primary);margin-bottom:16px;font-size:14px;line-height:1.8;white-space:pre-line;max-height:160px;overflow-y:auto}
+.quiz-stuff{background:var(--border-light);padding:12px 16px;border-radius:10px;border-left:4px solid var(--primary);margin-bottom:16px;font-size:14px;line-height:1.8;white-space:pre-line;max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .quiz-type{font-size:12px;color:var(--text-tertiary);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .quiz-question{font-size:16px;line-height:1.8;letter-spacing:.3px;margin-bottom:22px;color:var(--text);font-weight:500}
 .quiz-options{margin-bottom:14px}
 .quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.55;transition:var(--transition);background:var(--card)}
 .quiz-opt:hover{border-color:var(--primary);background:var(--primary-soft)}
 .quiz-opt .opt-letter{min-width:30px;height:30px;border-radius:50%;border:1.5px solid var(--text-secondary);text-align:center;line-height:28px;font-size:13px;flex-shrink:0;transition:var(--transition);font-weight:600}
-/* 选中态 = 中性灰环（不蹭品牌蓝） */
-.quiz-opt.selected{border-color:#94a3b8;color:var(--text);background:#f1f5f9}
-.quiz-opt.selected .opt-letter{background:#94a3b8;border-color:#94a3b8;color:#fff}
+/* 选中态 = 深暖陶土底（比宣纸卡片深两阶，与取消后的未选中态拉开明显差距） */
+.quiz-opt.selected{border-color:#8c7b68;color:var(--text);background:#d6cbb8}
+.quiz-opt.selected .opt-letter{background:#8c7b68;border-color:#8c7b68;color:#fff}
 .quiz-opt.correct{border-color:var(--success);color:var(--success);background:var(--success-soft)}
 .quiz-opt.correct .opt-letter{background:var(--success);border-color:var(--success);color:#fff}
 .quiz-opt.wrong{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
@@ -194,10 +195,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ai-explain .ai-sub{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px}
 .ai-explain .ai-empty{font-size:13px;color:var(--text-tertiary);line-height:1.8}
 .dark .ai-explain .ai-sub{color:#7fb0d8}
-.answer-resolution{font-size:13px;line-height:1.8;color:var(--text-secondary);max-height:250px;overflow-y:auto;white-space:pre-line;padding:12px;background:var(--bg);border-radius:var(--radius-sm)}.answer-resolution .res-label{color:var(--text-secondary);font-weight:600;font-size:12px;display:block;margin-bottom:6px}
+.answer-resolution{font-size:13px;line-height:1.8;color:var(--text-secondary);max-height:250px;overflow-y:auto;white-space:pre-line;padding:12px;background:var(--bg);border-radius:var(--radius-sm);-webkit-overflow-scrolling:touch}.answer-resolution .res-label{color:var(--text-secondary);font-weight:600;font-size:12px;display:block;margin-bottom:6px}
 
 /* AI chat */
-.chat-msgs{max-height:200px;overflow-y:auto;margin-bottom:6px}
+.chat-msgs{max-height:200px;overflow-y:auto;margin-bottom:6px;-webkit-overflow-scrolling:touch}
 .chat-msg{padding:6px 10px;border-radius:8px;font-size:12px;line-height:1.6;margin-bottom:4px}
 .chat-msg.user{background:var(--border-light);color:var(--text)}
 .chat-msg.ai{background:var(--primary-soft);color:var(--text)}
@@ -303,7 +304,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-opt{background:#211d18!important;border-color:#322c24;color:#efe9dc!important}
 .dark .quiz-opt:hover{background:#2a251e}
 /* 选中态 = 中性灰环（不蹭品牌蓝） */
-.dark .quiz-opt.selected{border-color:#8e8e93;background:#2a251e;color:#efe9dc}
+.dark .quiz-opt.selected{border-color:#7a7268;background:#3d362e;color:#efe9dc}
 .dark .quiz-opt.correct{background:#143420;border-color:#2f8a5a;color:#3fbf7f}
 .dark .quiz-opt.wrong{background:#3c1814;border-color:#a33;color:#ff6b61}
 .dark .quiz-opt .opt-letter{background:#3a342b;color:#efe9dc!important}
@@ -522,7 +523,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .mk-chip.on:hover{color:#fff}
 /* 窄屏适配 */
 @media(max-width:768px){
-  body{-webkit-tap-highlight-color:transparent}
+  body{-webkit-tap-highlight-color:transparent;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
   .page{padding:8px 8px 80px;padding-top:64px}
   .toolbar{height:48px}
   .toolbar .tabs{gap:6px;padding:3px}
@@ -546,9 +547,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   .quiz-progress{flex-shrink:1;min-width:0;overflow:hidden}
   .quiz-current{font-size:20px}
   .quiz-actions{flex-shrink:0;display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px}
-  .quiz-actions .btn{padding:4px 8px;font-size:9px;flex-shrink:0;min-width:0;white-space:nowrap;border-radius:4px;line-height:1.3}
-  .quiz-pill{height:10px;flex:1;min-width:40px}
-  .quiz-pill span{display:none}
+  .quiz-actions .btn{padding:5px 10px;font-size:10px;flex-shrink:0;min-width:0;min-height:0;white-space:nowrap;border-radius:6px;line-height:1.4}
+  .quiz-pill{height:3px;flex:1;min-width:40px}
   .quiz-info{gap:4px}
   .quiz-rate{font-size:10px}
   #qSubject{display:none}
@@ -1570,7 +1570,7 @@ function callDeepSeek(q, did, ua){
 +'【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'
 +'请在150字内回复，只换一行，不要换两行：\n'
 +'1. 第一句用高冷语气点明本题核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
-+'2. 逐选项（A/B/C/D）分行讲解，每项必须说清「对」或「错」的关键理由。长项多写、短项一笔带过，但不许省略任何选项。讲解时保持学霸的犀利和一点居高临下的傲娇感\n'
++'2. 逐选项（A/B/C/D）分行讲解，每项以"-- A."开头缩进，说清「对」或「错」的关键理由。长项多写、短项一笔带过，但不许省略任何选项。讲解时保持学霸的犀利和一点居高临下的傲娇感\n'
 +'3. 最后用一句冷淡但藏着在意的话收尾——不撩拨、不暧昧，就是学霸女友式的「行了，下一题」的感觉\n'
 +'注意：禁止直白撩拨、禁止亲密称呼、禁止废话。每次开场和收尾要变化。\n'
 
