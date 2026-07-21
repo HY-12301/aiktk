@@ -188,7 +188,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ai-explain .ai-title{font-size:13px;font-weight:700;color:var(--primary)}
 .ai-explain .ai-body{font-size:13px;line-height:1.8;color:var(--text-secondary)}
 .ai-explain .ai-body strong{color:var(--text)}
-.ai-explain .ai-pre{margin-bottom:8px;white-space:pre-line}
+.ai-explain .ai-pre{margin-bottom:8px;white-space:pre-wrap}
 .ai-explain .ai-point{display:inline-block;padding:4px 10px;border-radius:99px;background:#e0e9f2;color:var(--primary-600);font-size:12px;font-weight:600;margin-top:4px}
 .ai-explain .ai-loading{display:flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:13px}
 .ai-dots{display:inline-flex;gap:4px}
@@ -205,7 +205,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .chat-msgs{max-height:200px;overflow-y:auto;margin-bottom:6px;-webkit-overflow-scrolling:touch}
 .chat-msg{padding:6px 10px;border-radius:8px;font-size:12px;line-height:1.6;margin-bottom:4px}
 .chat-msg.user{background:var(--border-light);color:var(--text)}
-.chat-msg.ai{background:var(--primary-soft);color:var(--text)}
+.chat-msg.ai{background:var(--primary-soft);color:var(--text);white-space:pre-wrap}
 .chat-input-row{display:flex;gap:6px}
 .chat-inp{flex:1;padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);outline:none;min-width:0;background:var(--card);transition:var(--transition)}
 .chat-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
@@ -1574,10 +1574,17 @@ function callDeepSeek(q, did, ua){
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc(q.questionResolution||'')+'\n\n'
-+'请在150字内回复，只换一行，不要换两行：\n'
-+'1. 第一句用高冷语气点明核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
-+'2. 覆盖所有选项（A/B/C/D），不得遗漏。正确项和错误项可分别归类讲解，关联选项合并为一句，每组缩进2个字符。对照学生答案和正确答案分析。讲解可长可短，从答题逻辑（选了什么、该选什么、为什么）出发。学生答对的选项，可对其涉及的知识点做适当提醒防遗忘。每组独立一行，不要全部挤成一段\n'
-+'3. 最后用一句冷淡但藏着在意的话收尾\n'
++'请在150字内回复。排版格式严格遵守以下规则：\n'
++'· 全文只允许单行换行，严禁出现空行（不得连续两个换行）。\n'
++'· 首行（顶格）：高冷语气点明本题核心考点与答题结果（答对淡淡认可，答错嫌弃吐槽）。\n'
++'· 中段（选项讲解）：覆盖 A/B/C/D 全部选项，不得遗漏；正确项与错误项可分别归类，关联选项合并为一句。\n'
++'· 中段每个分组独占一行，行首必须统一缩进两个半角空格，如「  A.」「  B/C.」；分组间用单个换行分隔，段内不得空行，也不得全部挤成一段。\n'
++'· 末行（顶格）：用一句冷淡却藏在意的话收尾。\n'
++'· 对照学生答案与正确答案分析，从答题逻辑（选了什么、该选什么、为什么）出发；学生答对的选项可顺带提醒易忘知识点。\n'
++'格式骨架（仅示意结构，文字须自拟，禁止照抄）：\n'
++'  A. 正确……\n'
++'  B/C. 合并讲解……\n'
++'  D. 错误……\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
