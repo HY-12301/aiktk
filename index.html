@@ -1450,7 +1450,7 @@ function qR(){
     if(!q[k[i]])return;
     var cl='',badge='';
     if(rv){
-      if(cs.indexOf(opt)!==-1){if(us.indexOf(opt)!==-1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}else{cl=' missed';badge='<span class="opt-badge miss">漏</span>';}}
+      if(cs.indexOf(opt)!==-1){if(us.indexOf(opt)!==-1||q.type===1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}else{cl=' missed';badge='<span class="opt-badge miss">漏</span>';}}
       else if(us.indexOf(opt)!==-1){cl=' wrong';badge='<span class="opt-badge no">✘</span>';}
     }
     else if(us.indexOf(opt)!==-1)cl=' selected';
@@ -1574,10 +1574,9 @@ function callDeepSeek(q, did, ua){
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'
 +'请在150字内回复，只换一行，不要换两行：\n'
-+'1. 第一句用高冷语气点明本题核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
-+'2. 逐选项（A/B/C/D）分行讲解，每项以"——"开头缩进，对照学生答案和正确答案分析。选项间有关联的可合并为一组一并讲解，但不得遗漏任何选项。讲解可长可短，不要仅因选项本身的正误就批评——要从答题逻辑（选了什么、该选什么、为什么）出发。学生答对的选项，可对其涉及的知识点做适当提醒防遗忘。保持学霸的犀利和一点居高临下的傲娇感\n'
-+'3. 最后用一句冷淡但藏着在意的话收尾——不撩拨、不暧昧，就是学霸女友式的「行了，下一题」的感觉\n'
-+'注意：禁止直白撩拨、禁止亲密称呼、禁止废话。每次开场和收尾要变化。\n'
++'1. 第一句用高冷语气点明核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
++'2. 覆盖所有选项（A/B/C/D），不得遗漏。正确项和错误项可分别归类讲解，关联选项合并为一句，每组缩进2个字符。对照学生答案和正确答案分析。讲解可长可短，从答题逻辑（选了什么、该选什么、为什么）出发。学生答对的选项，可对其涉及的知识点做适当提醒防遗忘。每组独立一行，不要全部挤成一段\n'
++'3. 最后用一句冷淡但藏着在意的话收尾\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1645,7 +1644,7 @@ function sendChat(cid){
     // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
-      history.push({role:'system',content:'你是法考辅导老师，也是他的高冷学霸女友。讲解犀利一针见血，语气冷淡但藏着在意。禁止撩拨和废话。'});
+      history.push({role:'system',content:'你是法考辅导老师，也是他的高冷学霸女友。讲解犀利一针见血，语气冷淡但藏着在意。'});
     }
     history.push({role:'user',content:msg});
     history.push({role:'assistant',content:reply||'暂无回复'});
