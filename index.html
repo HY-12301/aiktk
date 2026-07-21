@@ -1104,8 +1104,9 @@ function togSrc(type){
 (function(){
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
+  var subjKeyOrder=['MF','MS','SJF','SGF','XF','XS','XZF','LLF']; // 左列：民法/民诉/商经法/三国法；右列：刑法/刑诉/行政法/理论法
   var h='';
-  Object.keys(subMap).forEach(function(k){
+  subjKeyOrder.forEach(function(k){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
     h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<div class="subj-row"><span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span><span class="subj-name">'+subMap[k]+'</span><span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span></div>';
@@ -1450,7 +1451,7 @@ function qR(){
     if(!q[k[i]])return;
     var cl='',badge='';
     if(rv){
-      if(cs.indexOf(opt)!==-1){if(us.indexOf(opt)!==-1||q.type===1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}else{cl=' missed';badge='<span class="opt-badge miss">漏</span>';}}
+      if(cs.indexOf(opt)!==-1){if(us.indexOf(opt)!==-1||q.type==1){cl=' correct';badge='<span class="opt-badge ok">✔</span>';}else{cl=' missed';badge='<span class="opt-badge miss">−</span>';}}
       else if(us.indexOf(opt)!==-1){cl=' wrong';badge='<span class="opt-badge no">✘</span>';}
     }
     else if(us.indexOf(opt)!==-1)cl=' selected';
