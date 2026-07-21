@@ -131,9 +131,9 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.55;transition:var(--transition);background:var(--card)}
 .quiz-opt:hover{border-color:var(--primary);background:var(--primary-soft)}
 .quiz-opt .opt-letter{min-width:30px;height:30px;border-radius:50%;border:1.5px solid var(--text-secondary);text-align:center;line-height:28px;font-size:13px;flex-shrink:0;transition:var(--transition);font-weight:600}
-/* 选中态 = 深暖陶土底（比宣纸卡片深两阶，与取消后的未选中态拉开明显差距） */
-.quiz-opt.selected{border-color:#8c7b68;color:var(--text);background:#d6cbb8}
-.quiz-opt.selected .opt-letter{background:#8c7b68;border-color:#8c7b68;color:#fff}
+/* 选中态 = 淡蓝填充（不蹭主色靛蓝，柔和不刺眼） */
+.quiz-opt.selected{border-color:#7e97c4;color:var(--text);background:#ecf1f9}
+.quiz-opt.selected .opt-letter{background:#7e97c4;border-color:#7e97c4;color:#fff}
 .quiz-opt.correct{border-color:var(--success);color:var(--success);background:var(--success-soft)}
 .quiz-opt.correct .opt-letter{background:var(--success);border-color:var(--success);color:#fff}
 .quiz-opt.wrong{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
@@ -160,7 +160,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ar-opt.ua-right{color:#047857}
 .ar-opt.ua-wrong{color:#b91c1c}
 .ar-opt.ca-on{color:#047857}
-.ar-opt.ca-miss{color:#ca8a04}
+.ar-opt.ca-miss{color:var(--warning)}
 .ar-mark{display:inline-flex;align-items:center;justify-content:center;min-width:22px;padding:0 5px;font-weight:500;font-size:18px;letter-spacing:2px;flex-shrink:0}
 .ar-mark.ok{color:#047857}
 .ar-mark.bad{color:#b91c1c}
@@ -174,7 +174,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .ar-opt.ua-right{color:#3fbf7f}
 .dark .ar-opt.ua-wrong{color:#ff6b61;font-weight:700}
 .dark .ar-opt.ca-on{color:#3fbf7f}
-.dark .ar-opt.ca-miss{color:#ffb340;font-weight:700}
+.dark .ar-opt.ca-miss{color:#e8a040;font-weight:700}
 .answer-stats{font-size:13px;line-height:1.8;margin-bottom:14px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .answer-stats strong{color:var(--primary)}
 /* AI 讲解统一区块 */
@@ -304,7 +304,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-opt{background:#211d18!important;border-color:#322c24;color:#efe9dc!important}
 .dark .quiz-opt:hover{background:#2a251e}
 /* 选中态 = 中性灰环（不蹭品牌蓝） */
-.dark .quiz-opt.selected{border-color:#7a7268;background:#3d362e;color:#efe9dc}
+.dark .quiz-opt.selected{border-color:#6078a8;background:#1c2434;color:#efe9dc}
 .dark .quiz-opt.correct{background:#143420;border-color:#2f8a5a;color:#3fbf7f}
 .dark .quiz-opt.wrong{background:#3c1814;border-color:#a33;color:#ff6b61}
 .dark .quiz-opt .opt-letter{background:#3a342b;color:#efe9dc!important}
@@ -1570,7 +1570,7 @@ function callDeepSeek(q, did, ua){
 +'【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'
 +'请在150字内回复，只换一行，不要换两行：\n'
 +'1. 第一句用高冷语气点明本题核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
-+'2. 逐选项（A/B/C/D）分行讲解，每项以"-- A."开头缩进，说清「对」或「错」的关键理由。长项多写、短项一笔带过，但不许省略任何选项。讲解时保持学霸的犀利和一点居高临下的傲娇感\n'
++'2. 逐选项（A/B/C/D）分行讲解，每项以"——"开头缩进，对照学生答案和正确答案分析。选项间有关联的可合并为一组一并讲解，但不得遗漏任何选项。讲解可长可短，不要仅因选项本身的正误就批评——要从答题逻辑（选了什么、该选什么、为什么）出发。学生答对的选项，可对其涉及的知识点做适当提醒防遗忘。保持学霸的犀利和一点居高临下的傲娇感\n'
 +'3. 最后用一句冷淡但藏着在意的话收尾——不撩拨、不暧昧，就是学霸女友式的「行了，下一题」的感觉\n'
 +'注意：禁止直白撩拨、禁止亲密称呼、禁止废话。每次开场和收尾要变化。\n'
 
