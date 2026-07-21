@@ -1572,7 +1572,7 @@ function callDeepSeek(q, did, ua){
 +'【选项】\n'+optsTxt+'\n'
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
-+'【官方解析】'+esc((q.questionResolution||'').substring(0,500))+'\n\n'
++'【官方解析】'+esc(q.questionResolution||'')+'\n\n'
 +'请在150字内回复，只换一行，不要换两行：\n'
 +'1. 第一句用高冷语气点明核心考点和答题结果（答对淡淡认可，答错嫌弃吐槽）\n'
 +'2. 覆盖所有选项（A/B/C/D），不得遗漏。正确项和错误项可分别归类讲解，关联选项合并为一句，每组缩进2个字符。对照学生答案和正确答案分析。讲解可长可短，从答题逻辑（选了什么、该选什么、为什么）出发。学生答对的选项，可对其涉及的知识点做适当提醒防遗忘。每组独立一行，不要全部挤成一段\n'
@@ -1623,7 +1623,7 @@ function sendChat(cid){
     '【题目】'+esc(q.content||'')+'\n'+
     '【选项】\n'+optsTxt+
     '【正确答案】'+esc(q.correctAnswer||'')+'\n'+
-    '【官方解析】'+esc((q.questionResolution||'').substring(0,300))+'\n\n'+
+    '【官方解析】'+esc(q.questionResolution||'')+'\n\n'+
     '学生提问：'+msg+'\n\n'+
     '请用简洁中文回答（150字内）';
 
