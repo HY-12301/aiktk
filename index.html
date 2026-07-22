@@ -533,7 +533,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .mk-unflag:hover{background:var(--border);color:var(--text)}
 .mk-empty{color:var(--text-tertiary);font-size:13px;text-align:center;padding:48px 0;line-height:1.8}
 /* 题头标记按钮 */
-.q-flag{font-size:11px;padding:3px 10px;border-radius:99px;border:1px solid #fde68a;background:#fefce8;color:#a16207;cursor:pointer;line-height:1.6;white-space:nowrap;transition:var(--transition)}
+.q-flag{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #fde68a;background:#fefce8;color:#a16207;cursor:pointer;line-height:1.6;white-space:nowrap;transition:var(--transition)}
 .q-flag.on{background:#fde68a;color:#92400e;border-color:#fbbf24}
 .q-flag:hover{filter:brightness(0.97)}
 /* 标记页科目卡片 */
@@ -1583,7 +1583,7 @@ function callDeepSeek(q, did, ua){
   var optsTxt='';
   ['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
 
-  var prompt='你是他的高冷学霸女友——嘴硬但关心，聪明且嫌弃，但每一句讲解都一针见血。学生刚做完一道法考题，请用你的风格帮他分析。\n'
+  var prompt='你是他的毒舌女合伙人，也是经验丰富的法考辅导老师。你把他当作成年同事，表达成熟、简洁、精准，像一个看起来慵懒、但总能迅速抓住题眼的天才学姐。可以有一句克制的调侃，但不要卖萌、羞辱、刻意表演人设或堆砌游戏梗；法律分析永远优先于人设表达。\n'
 +'【科目】'+esc(q.lawName||'')+'\n'
 +'【题型】'+typeName+'\n'
 +'【题目】'+esc(q.content||'')+'\n'
@@ -1591,21 +1591,13 @@ function callDeepSeek(q, did, ua){
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc(q.questionResolution||'')+'\n\n'
-+'请在200字内回复。分「格式」与「内容」两部分，均须严格遵守：\n'
-+'【格式】\n'
-+'· 全文连续无空行——首行前、行与行之间、末行后，均不得有空行（不得有连续两个换行）。\n'
-+'· 首行（顶格）：高冷语气点明本题核心考点与答题结果（答对淡淡认可，答错嫌弃吐槽）。\n'
-+'· 中段（选项讲解）：覆盖 A/B/C/D 全部选项，不得遗漏。每个选项独占一行，行首缩进两个半角空格，如「  A.」。当两个以上选项的对错理由相近或相同时可合并为一行，如「  B/C.」。\n'
-+'· 末行（顶格）：用一句冷淡却藏在意的话收尾。\n'
-+'【内容】\n'
-+'· 对照学生答案与正确答案分析，从答题逻辑（选了什么、该选什么、为什么）出发，不要仅凭选项本身正误下结论。学生答对的选项可顺带提醒一句易忘知识点。\n'
-+'格式骨架（禁止照抄骨架文字，仅按结构填充）：\n'
-+'[首行，顶格] 考点……\n'
-+'  A. ……\n'
-+'  B. ……\n'
-+'  C. ……\n'
-+'  D. ……\n'
-+'[末行，顶格] 收尾……\n'
++'请结合学生的选择过程讲解，输出控制在200字左右，并做到：\n'
++'· 开头直接给出结论、核心考点和具体错因，再展开必要解释。\n'
++'· 从学生选了什么、应该选什么、为什么出发，不要只复述标准答案。\n'
++'· A/B/C/D 每个选项都必须得到解释，不得遗漏；理由相近的选项可以自然合并。\n'
++'· 根据题目自由组织结构，不套固定模板，不强制行数或选项顺序。使用短句和自然分段，选项分析可用「A.」「B/C.」等标签，保证易读。\n'
++'· 不重复大段题干或选项原文，只解释影响判断的部分；最后给出下次遇到同类题可直接执行的识别方法。\n'
++'· 输出前自行检查：是否覆盖全部选项、是否结合学生答案、是否给出可执行的判断方法。\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1647,7 +1639,7 @@ function sendChat(cid){
   var ctx=chatCtx[cid]||{};
   var q=S[I];
   var optsTxt='';['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
-  var prompt='你是他的高冷学霸女友，嘴硬但讲解一针见血。他追问时请用你的风格简洁回答：\n'+
+  var prompt='你是他的毒舌女合伙人，成熟强势，把他当成年同事；表达像慵懒的天才学姐，短促精准。可以轻微吐槽，但不卖萌、不羞辱、不堆砌游戏梗。他追问时请直接解决困惑：\n'+
     '【科目】'+esc(q.lawName||'')+'\n'+
     '【题目】'+esc(q.content||'')+'\n'+
     '【选项】\n'+optsTxt+
@@ -1673,7 +1665,7 @@ function sendChat(cid){
     // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
-      history.push({role:'system',content:'你是法考辅导老师，也是他的高冷学霸女友。讲解犀利一针见血，语气冷淡但藏着在意。'});
+      history.push({role:'system',content:'你是他的毒舌女合伙人，也是法考辅导老师。把他当成年同事，讲解短促精准、犀利但不羞辱；发现他反复困惑时停止挖苦，换更直观的角度并给出可执行的识别方法。'});
     }
     history.push({role:'user',content:msg});
     history.push({role:'assistant',content:reply||'暂无回复'});
