@@ -1437,6 +1437,14 @@ function updateHeader(){
   }else{pg.style.width='0%';pb.style.width='0%'}
 }
 
+function syncQuizButtons(isSubmitted){
+  var s=document.getElementById('btnSubmit'),k=document.getElementById('btnSkip'),n=document.getElementById('btnNext'),p=document.getElementById('btnPrev');
+  if(s)s.style.display=isSubmitted?'none':'';
+  if(k)k.style.display=isSubmitted?'none':'';
+  if(n)n.style.display=isSubmitted?'':'none';
+  if(p)p.disabled=I<=0;
+}
+
 function qR(){
   if(!S||!S.length||I>=S.length){
     if(EXAM_MODE)endExam();else eQ();return
@@ -1483,8 +1491,7 @@ function qR(){
   }
   h+='</div>';
   l.innerHTML=h;
-  // Reset bottom bar to pre-submit when showing new question
-  if(!rv){var s=document.getElementById('btnSubmit'),k=document.getElementById('btnSkip'),n=document.getElementById('btnNext'),p=document.getElementById('btnPrev');if(s)s.style.display='';if(k)k.style.display='';if(n)n.style.display='none';if(p)p.disabled=I<=0;}
+  syncQuizButtons(rv);
 
   // Right panel - show AI thinking first
   var ae=document.getElementById('answerEmpty'),ac=document.getElementById('answerContent');
@@ -1583,7 +1590,7 @@ function callDeepSeek(q, did, ua){
   var optsTxt='';
   ['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
 
-  var prompt='你是他的毒舌女合伙人，也是经验丰富的法考辅导老师。你把他当作成年同事，表达成熟、简洁、精准，像一个看起来慵懒、但总能迅速抓住题眼的天才学姐。人设必须自然体现在选项讲解中，不在开头额外表演；不要卖萌、羞辱或堆砌游戏梗，法律分析永远优先于人设表达。\n'
+  var prompt='你是经验丰富的法考辅导老师。讲解必须精准、简洁、一针见血，优先解决学生为什么错、以后怎么识别。\n'
 +'【科目】'+esc(q.lawName||'')+'\n'
 +'【题型】'+typeName+'\n'
 +'【题目】'+esc(q.content||'')+'\n'
@@ -1591,14 +1598,15 @@ function callDeepSeek(q, did, ua){
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc(q.questionResolution||'')+'\n\n'
-+'请结合学生的选择过程讲解，正文控制在150—180字，最多不得超过200字，并做到：\n'
-+'· 开头只用一句话点明结论、核心考点和具体错因。\n'
++'请结合学生的选择过程讲解，正文控制在120—160字，最多不得超过200字，并做到：\n'
++'· 开头只用一句话讲结论和具体错因，不展开背景、不铺垫考点。\n'
 +'· 从学生选了什么、应该选什么、为什么出发，不要只复述标准答案。\n'
-+'· 题目中的每个选项都必须得到解释，不得遗漏；每项只讲决定对错的一个关键点。讲解顺序应根据学生的选择路径和知识关联自由安排，优先解释误选项、漏选项及关键正确项，不得固定按字母顺序输出。先分别判断每个选项，只有多个选项的法律依据、判断结论和核心理由完全一致时才可合并；仅主题相关或表述相似不得合并，不确定时必须分开讲解。\n'
-+'· 选项讲解使用对应字母标签，每行行首缩进四个半角空格，如「    A.」。每个选项行都必须以毒舌女合伙人的审稿口吻，把一个4—8字的简短评价与法律理由写在同一句中；评价须针对学生判断或选项陷阱，不得脱离题目，不得重复句式，也不得挤占法律分析。其他内容顶格。\n'
++'· 题目中的每个选项都必须得到解释，不得遗漏；每项只讲决定对错的一个关键点。讲解顺序应根据学生的选择路径和知识关联自由安排，优先解释误选项、漏选项及关键正确项，不得固定按字母顺序输出。\n'
++'· 合并讲解条件放宽：多个选项只要适用规则、判断结论、错误性质或考点陷阱高度一致，即可合并为一行；合并后必须明确覆盖哪些字母。不得因字母相邻或表面主题相似硬合并。\n'
++'· 选项讲解使用实际选项字母标签，每行行首缩进四个半角空格；只写法律判断和关键理由，不写语气短评。其他内容顶格。\n'
 +'· 全文不得出现空行，首行前、行与行之间、末行后均不得留空行。\n'
 +'· 不复述题干、选项原文或标准答案，不写客套、安慰和重复结论；把同类题识别方法自然融入讲解，不单独总结。\n'
-+'· 输出前检查：不超过200字、覆盖全部选项、结合学生答案、没有空行、选项行缩进正确，且每个选项行都有人设化短评。\n'
++'· 输出前检查：不超过200字、覆盖全部选项、结合学生答案、没有空行、选项行缩进正确，表述精准简洁。\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
@@ -1640,14 +1648,14 @@ function sendChat(cid){
   var ctx=chatCtx[cid]||{};
   var q=S[I];
   var optsTxt='';['A','B','C','D'].forEach(function(o){var v=q['option'+o];if(v)optsTxt+=o+'. '+v+'\n'});
-  var prompt='你是他的毒舌女合伙人，成熟强势，把他当成年同事；表达像慵懒的天才学姐，短促精准。可以轻微吐槽，但不卖萌、不羞辱、不堆砌游戏梗。他追问时请直接解决困惑：\n'+
+  var prompt='你是经验丰富的法考辅导老师。学生追问时请直接解决困惑，回答精准、简洁、一针见血：\n'+
     '【科目】'+esc(q.lawName||'')+'\n'+
     '【题目】'+esc(q.content||'')+'\n'+
     '【选项】\n'+optsTxt+
     '【正确答案】'+esc(q.correctAnswer||'')+'\n'+
     '【官方解析】'+esc(q.questionResolution||'')+'\n\n'+
     '学生提问：'+msg+'\n\n'+
-    '请用简洁中文回答（150字内）';
+    '请用简洁中文回答（150字内），只讲法律判断、错因和识别方法。';
 
   var history=ctx.history||[];
   var messages=[{role:'user',content:prompt}];
@@ -1666,7 +1674,7 @@ function sendChat(cid){
     // V4 Pro 空回复→降级 chat 重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
-      history.push({role:'system',content:'你是他的毒舌女合伙人，也是法考辅导老师。把他当成年同事，讲解短促精准、犀利但不羞辱；发现他反复困惑时停止挖苦，换更直观的角度并给出可执行的识别方法。'});
+      history.push({role:'system',content:'你是经验丰富的法考辅导老师。讲解要精准、简洁、一针见血；发现学生反复困惑时，换更直观的角度并给出可执行的识别方法。'});
     }
     history.push({role:'user',content:msg});
     history.push({role:'assistant',content:reply||'暂无回复'});
@@ -1743,10 +1751,7 @@ function submitAnswer(){
   upKW(q,ok);
   document.getElementById('qOk').textContent=K;
   qR();
-  // Switch bottom bar to post-submit mode
-  var s=document.getElementById('btnSubmit'),k=document.getElementById('btnSkip'),n=document.getElementById('btnNext');
-  if(s){s.style.display='none'}if(k){k.style.display='none'}if(n){n.style.display=''}
-  var p=document.getElementById('btnPrev');if(p)p.disabled=I<=0;
+  syncQuizButtons(true);
   // Auto-scroll to answer panel on mobile
   if(window.innerWidth<=768){
     setTimeout(function(){
