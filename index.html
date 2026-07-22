@@ -1591,19 +1591,20 @@ function callDeepSeek(q, did, ua){
 +'【学生答案】'+esc(ua||'未作答')+'\n'
 +'【正确答案】'+esc(q.correctAnswer||'')+'\n'
 +'【官方解析】'+esc(q.questionResolution||'')+'\n\n'
-+'请结合学生的选择过程讲解，输出控制在200字左右，并做到：\n'
-+'· 开头直接给出结论、核心考点和具体错因，再展开必要解释。\n'
++'请结合学生的选择过程讲解，正文控制在150—180字，最多不得超过200字，并做到：\n'
++'· 开头只用一句话点明结论、核心考点和具体错因。\n'
 +'· 从学生选了什么、应该选什么、为什么出发，不要只复述标准答案。\n'
-+'· A/B/C/D 每个选项都必须得到解释，不得遗漏；理由相近的选项可以自然合并。\n'
-+'· 根据题目自由组织结构，不套固定模板，不强制行数或选项顺序。使用短句和自然分段，选项分析可用「A.」「B/C.」等标签，保证易读。\n'
-+'· 不重复大段题干或选项原文，只解释影响判断的部分；最后给出下次遇到同类题可直接执行的识别方法。\n'
-+'· 输出前自行检查：是否覆盖全部选项、是否结合学生答案、是否给出可执行的判断方法。\n'
++'· A/B/C/D 每个选项都必须得到解释，不得遗漏；每项只讲决定对错的一个关键点，理由相近的选项必须合并。\n'
++'· 选项讲解使用「A.」「B/C.」等标签，每行行首缩进四个半角空格，如「    A.」。其他内容顶格。\n'
++'· 全文不得出现空行，首行前、行与行之间、末行后均不得留空行。\n'
++'· 不复述题干、选项原文或标准答案，不写客套、安慰和重复结论；把同类题识别方法自然融入讲解，不单独总结。\n'
++'· 输出前检查：不超过200字、覆盖全部选项、结合学生答案、没有空行、选项行缩进正确。\n'
 
   if(!DEEPSEEK_KEY){return}
   fetch(DEEPSEEK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:400})
+    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:300})
   }).then(function(r){return r.json()}).then(function(data){
     var el=document.getElementById(did);
     if(!el)return;
