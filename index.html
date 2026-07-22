@@ -1334,6 +1334,7 @@ function doS(s,z,m){
   var MASTERED_REPS=3;          // 已掌握: 最少复习次数
   // ==============================
   sessionSubjects=s;
+  var state=GS(),doneMap=state.done||{},firstSeenMap=state.firstSeen||{};
   var c=[];if(z)c.push('真题');if(m)c.push('模拟题');
   var pool=Q.filter(function(q){return s.indexOf(q.lawName)!==-1&&c.indexOf(q.source)!==-1});
   if(!pool.length){alert('无匹配题目');return}
@@ -1358,8 +1359,8 @@ function doS(s,z,m){
       else if(mem.phase==='learning'&&due<=nowT){bucket.learning.push(q);matched=true;}
     }
     if(!matched){
-      // 没做过的题永远算新题，绝不进 weak 桶被误丢
-      if(!mem){bucket.unseen.push(q);}
+      // 没做过且没有历史作答痕迹的题，才算真正的新题
+      if(!mem&&!doneMap[String(q.id)]&&!firstSeenMap[String(q.id)]){bucket.unseen.push(q);}
       else {
         var tk=topicKey(q),ws=kwWeakness(tk);
         // weak 桶只收「已做过且章节薄弱」的复习题
@@ -1370,8 +1371,8 @@ function doS(s,z,m){
   });
 
   // Sort urgency buckets
-  bucket.overdue.sort(function(a,b){return daysBetween(geM(a.id)&&geM(a.id).nextReview,nowS)-daysBetween(geM(b.id)&&geM(b.id).nextReview,nowS)});
-  bucket.relearn.sort(function(a,b){return daysBetween(geM(a.id).nextReview,nowS)-daysBetween(geM(b.id).nextReview,nowS)});
+  bucket.overdue.sort(function(a,b){return daysBetween(geM(b.id)&&geM(b.id).nextReview,nowS)-daysBetween(geM(a.id)&&geM(a.id).nextReview,nowS)});
+  bucket.relearn.sort(function(a,b){return daysBetween(geM(b.id).nextReview,nowS)-daysBetween(geM(a.id).nextReview,nowS)});
   bucket.learning.sort(function(a,b){return (geM(b.id).learningStepIdx||0)-(geM(a.id).learningStepIdx||0)});
   bucket.weak.sort(function(a,b){return kwWeakness(topicKey(b))-kwWeakness(topicKey(a))});
   shuffle(bucket.seen);
@@ -2506,6 +2507,7 @@ function doSmartExam(){
   try{
   var volName='',volNum=1;
   var shf=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}};
+  var state=GS(),doneMap=state.done||{},firstSeenMap=state.firstSeen||{};
 
   if(SMART_MODE==='single'){
     // 获取来源
@@ -2561,20 +2563,26 @@ function doSmartExam(){
         if(cnt===0)return;
         // Memory-based priority sorting
         var now=new Date(),nowS=now.toISOString();
-        var fr2=[],ol2=[],rl2=[],ln2=[];
+        var fr2=[],ol2=[],rl2=[],ln2=[],seen2=[];
         pool2.forEach(function(q){
           var mem=geM(q.id);
-          if(!mem){fr2.push(q);return}
+          if(!mem){
+            if(doneMap[String(q.id)]||firstSeenMap[String(q.id)])seen2.push(q);
+            else fr2.push(q);
+            return
+          }
           var due=mem.nextReview?new Date(mem.nextReview).getTime():0;
           if(mem.phase==='learning'&&due<=now.getTime())ln2.push(q);
           else if(mem.phase==='exponential'&&due<=now.getTime())ol2.push(q);
           else if(mem.phase==='relearning'&&due<=now.getTime())rl2.push(q);
+          else seen2.push(q);
         });
-        ol2.sort(function(a,b){return daysBetween(geM(a.id).nextReview,nowS)-daysBetween(geM(b.id).nextReview,nowS)});
-        rl2.sort(function(a,b){return daysBetween(geM(a.id).nextReview,nowS)-daysBetween(geM(b.id).nextReview,nowS)});
+        ol2.sort(function(a,b){return daysBetween(geM(b.id).nextReview,nowS)-daysBetween(geM(a.id).nextReview,nowS)});
+        rl2.sort(function(a,b){return daysBetween(geM(b.id).nextReview,nowS)-daysBetween(geM(a.id).nextReview,nowS)});
         for(var ii=fr2.length-1;ii>0;ii--){var jj=Math.floor(Math.random()*(ii+1));var tt=fr2[ii];fr2[ii]=fr2[jj];fr2[jj]=tt}
-        // 统一规则：优先选新题（≥70新题），不足再用复习题补足
-        pool2=fr2.concat(ol2).concat(rl2).concat(ln2);
+        shf(seen2);
+        // 统一规则：优先选新题（≥70新题），不足再用复习题和普通已做题补足
+        pool2=fr2.concat(ol2).concat(rl2).concat(ln2).concat(seen2);
         var pk=pool2.slice(0,cnt);
         pk.forEach(function(q){q._score=type===1?1:2;qs.push(q)});
       });
