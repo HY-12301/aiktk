@@ -1353,13 +1353,6 @@ function startQuiz(){
 function doS(s,z,m,sessionSize){
   // === 出题参数(命名常量，方便统一调参) ===
   var SESSION_SIZE=sessionSize||100;
-  var MIN_NEW=Math.ceil(SESSION_SIZE*0.7);
-  var REVIEW_RELEARN=Math.max(1,Math.round(SESSION_SIZE*0.12));
-  var REVIEW_OVERDUE=Math.max(1,Math.round(SESSION_SIZE*0.12));
-  var REVIEW_LEARNING=Math.max(1,Math.round(SESSION_SIZE*0.04));
-  var REVIEW_WEAK=Math.max(1,Math.round(SESSION_SIZE*0.02));
-  var FILL_RELEARN_MAX=50;      // 补位重学上限(防垄断,放 overdue/weak 等其他题型进来)
-  var KW_WEAKNESS_THRESH=0.25;  // 章节薄弱判定阈值
   var MASTERED_EF=2.5;          // 已掌握: 最低 EF
   var MASTERED_INTERVAL=30;     // 已掌握: 最短间隔(天)
   var MASTERED_REPS=3;          // 已掌握: 最少复习次数
@@ -1367,6 +1360,22 @@ function doS(s,z,m,sessionSize){
   sessionSubjects=s;
   var state=GS(),doneMap=state.done||{},firstSeenMap=state.firstSeen||{};
   var c=[];if(z)c.push('真题');if(m)c.push('模拟题');
+  var sourceById={};Q.forEach(function(q){sourceById[String(q.id)]=q.source;});
+  // 按当前所选科目的近期正确率动态分配新题与复习题，默认覆盖优先。
+  var recentDone=[];
+  Object.keys(doneMap).forEach(function(id){
+    var item=doneMap[id];
+    if(item&&sourceById[String(id)]&&s.indexOf(item.law)!==-1&&c.indexOf(sourceById[String(id)])!==-1)recentDone.push(item);
+  });
+  recentDone.sort(function(a,b){return String(b.time||'').localeCompare(String(a.time||''))});
+  recentDone=recentDone.slice(0,50);
+  var recentAccuracy=null;
+  if(recentDone.length>=10){
+    var recentCorrect=recentDone.filter(function(item){return item.ok===true}).length;
+    recentAccuracy=recentCorrect/recentDone.length;
+  }
+  var newRatio=recentAccuracy===null?0.7:(recentAccuracy<0.6?0.6:(recentAccuracy<=0.7?0.7:0.8));
+  var MIN_NEW=Math.ceil(SESSION_SIZE*newRatio);
   var pool=Q.filter(function(q){return s.indexOf(q.lawName)!==-1&&c.indexOf(q.source)!==-1});
   if(!pool.length){alert('无匹配题目');return}
   // 过滤已掌握的题，保留到 masteredPool 供补足用
@@ -1374,65 +1383,55 @@ function doS(s,z,m,sessionSize){
   pool=pool.filter(function(q){var mem=geM(q.id);if(mem&&mem.ef>=MASTERED_EF&&mem.interval>=MASTERED_INTERVAL&&mem.reps>=MASTERED_REPS){masteredPool.push(q);return false;}return true;});
   if(!pool.length){alert('当前科目已全部掌握！');return}
 
-  // === Optimized stratified sampling ===
-  var now=new Date(),nowS=now.toISOString(),nowT=now.getTime();
-
-  // Classify into 4 buckets
-  var bucket={overdue:[],relearn:[],learning:[],weak:[],unseen:[],seen:[]};
+  // === 四类出题池：新题、错题、标记题、已做题 ===
+  var nowT=new Date().getTime();
+  var wrongIds={};(state.w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
+  var flagIds=state.flags||{};
+  var bucket={unseen:[],wrong:[],marked:[],seen:[]};
   pool.forEach(function(q){
-    var mem=geM(q.id);
-    // Bucket: Memory urgency (one bucket per question)
-    var matched=false;
-    if(mem){
-      var due=mem.nextReview?new Date(mem.nextReview).getTime():0;
-      if(mem.phase==='relearning'&&due<=nowT){bucket.relearn.push(q);matched=true;}
-      else if(mem.phase==='exponential'&&due<=nowT){bucket.overdue.push(q);matched=true;}
-      else if(mem.phase==='learning'&&due<=nowT){bucket.learning.push(q);matched=true;}
-    }
-    if(!matched){
-      // 没做过且没有历史作答痕迹的题，才算真正的新题
-      if(!mem&&!doneMap[String(q.id)]&&!firstSeenMap[String(q.id)]){bucket.unseen.push(q);}
-      else {
-        var tk=topicKey(q),ws=kwWeakness(tk);
-        // weak 桶只收「已做过且章节薄弱」的复习题
-        if(ws>KW_WEAKNESS_THRESH)bucket.weak.push(q);
-        else bucket.seen.push(q);
-      }
-    }
+    var id=String(q.id),done=doneMap[id],mem=geM(q.id);
+    if(!mem&&!done&&!firstSeenMap[id]){bucket.unseen.push(q);return;}
+    var wrongHistory=!!(mem&&mem.totalWrong>0)||!!wrongIds[id];
+    var consecutiveCorrect=mem?mem.consecutiveCorrect||0:0;
+    if((done&&done.ok===false)||(wrongHistory&&consecutiveCorrect<3)){bucket.wrong.push(q);return;}
+    if(flagIds[id]){bucket.marked.push(q);return;}
+    bucket.seen.push(q);
   });
 
-  // Sort urgency buckets
-  bucket.overdue.sort(function(a,b){return daysBetween(geM(b.id)&&geM(b.id).nextReview,nowS)-daysBetween(geM(a.id)&&geM(a.id).nextReview,nowS)});
-  bucket.relearn.sort(function(a,b){return daysBetween(geM(b.id).nextReview,nowS)-daysBetween(geM(a.id).nextReview,nowS)});
-  bucket.learning.sort(function(a,b){return (geM(b.id).learningStepIdx||0)-(geM(a.id).learningStepIdx||0)});
-  bucket.weak.sort(function(a,b){return kwWeakness(topicKey(b))-kwWeakness(topicKey(a))});
+  // 错题内部只按记忆状态排序，不再把 relearn/overdue/learning 拆成独立题类。
+  function reviewPriority(q){
+    var mem=geM(q.id);
+    if(!mem)return 3;
+    var due=mem.nextReview?new Date(mem.nextReview).getTime():0;
+    if(mem.phase==='relearning')return 0;
+    if(due&&due<=nowT)return 1;
+    return 2;
+  }
+  function reviewEligible(q){
+    var mem=geM(q.id);
+    return !mem||!mem.nextReview||new Date(mem.nextReview).getTime()<=nowT;
+  }
+  bucket.wrong.sort(function(a,b){return reviewPriority(a)-reviewPriority(b)});
   shuffle(bucket.seen);
 
   // Dynamic allocation ratios
-  // === 按所选题量出题，至少七成新题，顺序随机 ===
+  // === 按当前正确率分配新题与复习题，顺序随机 ===
   shuffle(bucket.unseen);
   var news=bucket.unseen.slice(0,MIN_NEW);
-  // 复习位按所选题量同比缩放，避免短练习被复习题挤占。
-  var rUsed={};
-  function pushND(arr,cap){var out=[];for(var i=0;i<arr.length&&out.length<cap;i++){var id=String(arr[i].id);if(!rUsed[id]){rUsed[id]=1;out.push(arr[i]);}}return out;}
-  var reviews=pushND(bucket.relearn,REVIEW_RELEARN)
-    .concat(pushND(bucket.overdue,REVIEW_OVERDUE))
-    .concat(pushND(bucket.learning,REVIEW_LEARNING))
-    .concat(pushND(bucket.weak,REVIEW_WEAK));
+  var reviewIds={},reviewCandidates=[];
+  news.forEach(function(q){reviewIds[String(q.id)]=1;});
+  function addReviews(arr){arr.forEach(function(q){var id=String(q.id);if(!reviewIds[id]){reviewIds[id]=1;reviewCandidates.push(q);}})}
+  addReviews(bucket.wrong.filter(reviewEligible));
+  addReviews(bucket.marked.filter(reviewEligible));
+  // 新题不足时，复习题自然补足；复习题不足时才继续补充新题。
+  var reviews=reviewCandidates.slice(0,Math.max(0,SESSION_SIZE-news.length));
   var result=news.concat(reviews);
-  // 不足100按优先级补足：剩余新题 → 重学(上限70) → 到期巩固 → 到期学习 → 薄弱 → 错题本 → 曾错已做 → 已做不急(含做对,仅兜底) → 已掌握
+  // 不足目标题量时，先补剩余复习题，再补剩余新题，最后才用普通已做题兜底。
   if(result.length<SESSION_SIZE){
     var used={};result.forEach(function(q){used[String(q.id)]=1});
     function pullFrom(arr){for(var i=0;i<arr.length&&result.length<SESSION_SIZE;i++){var id=String(arr[i].id);if(!used[id]){result.push(arr[i]);used[id]=1;}}}
-    pullFrom(bucket.unseen);                  // 更多新题优先
-    // 重学优先：补位重学上限70(防垄断，放 overdue/weak 等其他题型进来)
-    pullFrom(pool.filter(function(q){var m=geM(q.id);return m&&m.phase==='relearning'&&!used[String(q.id)];}).slice(0,FILL_RELEARN_MAX));
-    pullFrom(bucket.overdue);                 // 到期巩固(分桶时已排到期紧急度)
-    pullFrom(bucket.learning);                // 到期学习(分桶时已按 stepIdx 排)
-    pullFrom(bucket.weak);                    // 薄弱已做
-    var wrongIds={};(GS().w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
-    pullFrom(pool.filter(function(q){return wrongIds[String(q.id)]&&!used[String(q.id)];}));  // 错题本
-    pullFrom(bucket.seen.filter(function(q){var m=geM(q.id);return m&&m.totalWrong>0;}));      // 曾错已做
+    pullFrom(reviewCandidates);               // 错题、标记题
+    pullFrom(bucket.unseen);                  // 复习题不足时才补新题
     pullFrom(bucket.seen);                    // 其余已做(含一直做对，仅兜底)
     pullFrom(masteredPool);
   }
@@ -2041,26 +2040,35 @@ function rP(){
     loadData(function(dd){Q=dd;D=true;rP._loading=false;rP();},function(){rP._loading=false;var pm=document.getElementById('pMetrics');if(pm)pm.innerHTML='<div style="padding:24px;text-align:center;color:#888">题库未加载，请先开始刷题</div>'});
     return;
   }
-  var d=GS(),t=d.t||0,k=d.k||0;
+  var d=GS();
   var doneIds=d.done||{},doneCount=Object.keys(doneIds).length;
   var memData=d.mem||{},nowT=new Date().getTime();
   // 优先从 Q 取题库数据，未加载时用硬编码回退
   var hasQ=Q&&Q.length>0;
   var totalAvail=hasQ?Q.length:17374;
-  var id2law={};
-  if(hasQ){Q.forEach(function(q){id2law[String(q.id)]=q.lawName})}
-
-  var dueCount=0,masteredCount=0,relearningCount=0,subjDue={};
-  Object.keys(memData).forEach(function(qid){
-    var st=memData[qid];
-    if(st.nextReview&&new Date(st.nextReview).getTime()<=nowT){dueCount++;if(id2law[qid])subjDue[id2law[qid]]=(subjDue[id2law[qid]]||0)+1}
-    if(st.ef>=2.5&&st.interval>=30&&st.reps>=3)masteredCount++;
-    if(st.phase==='relearning')relearningCount++;
+  var wrongIds={};(d.w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
+  var flagIds=d.flags||{},subjCats={};
+  function getSubjCat(law){
+    if(!subjCats[law])subjCats[law]={wrong:0,marked:0,due:0,mastered:0};
+    return subjCats[law];
+  }
+  Q.forEach(function(q){
+    var id=String(q.id),st=memData[id],done=doneIds[id],cat=getSubjCat(q.lawName);
+    var mastered=st&&st.ef>=2.5&&st.interval>=30&&st.reps>=3;
+    var wrongHistory=!!(st&&st.totalWrong>0)||!!wrongIds[id];
+    var consecutiveCorrect=st?st.consecutiveCorrect||0:0;
+    var activeWrong=!mastered&&((done&&done.ok===false)||(wrongHistory&&consecutiveCorrect<3));
+    if(mastered){cat.mastered++;return;}
+    if(activeWrong){cat.wrong++;}
+    else if(flagIds[id]){cat.marked++;}
+    else{return;}
+    if(st&&st.nextReview&&new Date(st.nextReview).getTime()<=nowT)cat.due++;
   });
   var overallPct=totalAvail>0?Math.round(doneCount/totalAvail*100):null;
+  var latestCorrectCount=Object.keys(doneIds).filter(function(id){return doneIds[id]&&doneIds[id].ok===true}).length;
   // === 环形进度 + 侧数字 ===
   var ringR=44,ringC=2*Math.PI*ringR,ringDash=overallPct!==null?ringC*(1-overallPct/100):ringC;
-  var ratePct=t>0?Math.round(k/t*100)+'%':'-';
+  var ratePct=doneCount>0?Math.round(latestCorrectCount/doneCount*100)+'%':'-';
   var todayNew=todayNewStudy();
   var topHTML='<div class="p-ring-card"><svg class="p-ring" viewBox="0 0 120 120">'+
     '<circle cx="60" cy="60" r="'+ringR+'" fill="none" stroke="var(--border-light)" stroke-width="10"/>'+
@@ -2069,9 +2077,9 @@ function rP(){
     ' transform="rotate(-90 60 60)"/>'+
     '<text x="60" y="56" text-anchor="middle" font-size="22" font-weight="600" fill="var(--text)">'+(overallPct!==null?overallPct+'%':'--')+'</text>'+
     '<text x="60" y="76" text-anchor="middle" font-size="11" fill="var(--text-tertiary)">整体进度</text></svg>'+
-    '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+t.toLocaleString()+'</span><span class="p-ring-lbl">做题总数</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num">'+k.toLocaleString()+'</span><span class="p-ring-lbl">正确数</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(t>0?(k/t>=0.6?'#10b981':k/t>=0.4?'#ff9800':'#ef4444'):'var(--text-tertiary)')+'">'+ratePct+'</span><span class="p-ring-lbl">正确率</span></div>'+
+    '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+doneCount.toLocaleString()+'</span><span class="p-ring-lbl">已做题</span></div>'+
+    '<div class="p-ring-item"><span class="p-ring-num">'+latestCorrectCount.toLocaleString()+'</span><span class="p-ring-lbl">答对题</span></div>'+
+    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(doneCount>0?(latestCorrectCount/doneCount>=0.6?'#10b981':latestCorrectCount/doneCount>=0.4?'#ff9800':'#ef4444'):'var(--text-tertiary)')+'">'+ratePct+'</span><span class="p-ring-lbl">当前正确率</span></div>'+
     '<div class="p-ring-item"><span class="p-ring-num" style="color:#2a5d8f">'+todayNew+'</span><span class="p-ring-lbl">今日新学</span></div></div></div>';
   document.getElementById('pMetrics').innerHTML=topHTML;
   // 近7天折线图
@@ -2138,10 +2146,10 @@ function rP(){
     var kk=Object.keys(subMap).find(function(k){return subMap[k]===s});
     var tt=subjTotals[s]||0,dd=subjDone[s]||0,p=tt>0?Math.round(dd/tt*100):0;
     var sc=subjCorrect[s]||0,sw=Math.max(0,dd-sc);
-    var cr=dd>0?Math.round(sc/dd*100):0,cdue=subjDue[s]||0;
+    var cr=dd>0?Math.round(sc/dd*100):0,cat=subjCats[s]||{wrong:0,marked:0,due:0,mastered:0};
     var kw=d.kw||{},weakTopic='',weakRate=0;
     Object.keys(kw).forEach(function(tk){if(tk.indexOf(s+'.')===0){var rec=kw[tk];if(rec&&rec.t>=3){var wr=rec.w/rec.t;if(wr>weakRate){weakRate=wr;weakTopic=tk.slice(tk.indexOf('.')+1)}}}});
-    subjs.push({name:s,kk:kk,p:p,cr:cr,sc:sc,sw:sw,dd:dd,tt:tt,cdue:cdue,weakTopic:weakTopic,weakRate:weakRate});
+    subjs.push({name:s,kk:kk,p:p,cr:cr,sc:sc,sw:sw,dd:dd,tt:tt,wrong:cat.wrong,marked:cat.marked,due:cat.due,mastered:cat.mastered,weakTopic:weakTopic,weakRate:weakRate});
   });
 
   var pr=Math.PI*14,prOff=2*pr;
@@ -2169,29 +2177,22 @@ function rP(){
 function togglePDetail(kk){
   var el=document.getElementById('pDetail');
   if(!Q||!Q.length){el.innerHTML='<div style="color:var(--text-tertiary);padding:20px;text-align:center;font-size:13px">请先开始刷题再查看详情</div>';el.classList.add('show');return}
-  var id2law={};Q.forEach(function(q){id2law[String(q.id)]=q.lawName});
   document.querySelectorAll('.p-trow').forEach(function(r){r.classList.remove('sel')});
   var row=document.querySelector('.p-trow[data-subj="'+kk+'"]');
   if(row)row.classList.add('sel');
   var sj=(window._pData||[]).find(function(s){return s.kk===kk});if(!sj)return;
   if(el.dataset.open===kk){el.classList.remove('show');el.dataset.open='';return}
   el.dataset.open=kk;
-  var memData=GS().mem||{},phases={exponential:0,relearning:0};
-  Object.keys(memData).forEach(function(qid){
-    var st=memData[qid],lawName=st.law||id2law[qid];
-    if(!lawName||lawName!==sj.name)return;
-    if(st.phase==='exponential')phases.exponential++;
-    else if(st.phase==='relearning')phases.relearning++;
-
-  });
-  var totalMem=phases.exponential+phases.relearning||1;
-  var mcolors={exponential:'#10b981',relearning:'#ff9800'};
-  var mnames={exponential:'巩固',relearning:'重学'};
   var subjToday=todayNewStudy(sj.name);
-  var todayChunk='<div class="mchunk" style="background:#2a5d8f15;border:1px solid #2a5d8f50"><div class="mn" style="color:#2a5d8f">'+subjToday+'</div><div class="ml">今日</div></div>';
-  var memHTML='<div class="p-dmem">'+todayChunk+['exponential','relearning'].map(function(k){
-    var c=mcolors[k],n=mnames[k],v=phases[k],pct=Math.round(v/totalMem*100);
-    return '<div class="mchunk" style="background:'+c+'15;border:1px solid '+c+'50"><div class="mn" style="color:'+c+'">'+v+'</div><div class="ml">'+n+' ('+pct+'%)</div></div>';
+  var chunks=[
+    {n:subjToday,l:'今日新学',c:'#2a5d8f'},
+    {n:sj.wrong,l:'错题池',c:'#dc2626'},
+    {n:sj.marked,l:'标记题',c:'#d97706'},
+    {n:sj.due,l:'待复习',c:'#4f46e5'},
+    {n:sj.mastered,l:'已掌握',c:'#059669'}
+  ];
+  var memHTML='<div class="p-dmem">'+chunks.map(function(x){
+    return '<div class="mchunk" style="background:'+x.c+'15;border:1px solid '+x.c+'50"><div class="mn" style="color:'+x.c+'">'+x.n+'</div><div class="ml">'+x.l+'</div></div>';
   }).join('')+'</div>';
   var h='<div class="p-dt"><span>'+sj.name+'</span> · 已做 '+sj.dd+'/'+sj.tt+' 题</div>'+memHTML;
   el.innerHTML=h;el.classList.add('show');
