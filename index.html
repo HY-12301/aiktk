@@ -1753,9 +1753,7 @@ function submitAnswer(){
   if(ok){
     K++;
     var d=GS();d.done[q.id]={law:q.lawName,ok:true,time:new Date().toISOString()};
-    // Auto-clear error: 连对3次移出错题本
-    var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
-    if(ei!==-1){d.w[ei].streak=(d.w[ei].streak||0)+1;if(d.w[ei].streak>=3)d.w.splice(ei,1)}
+    adjustErrorStreak(d,q,true);
   } else {B++;rW(q)}
   // 实时统计：每答一题写入今日趋势（使用本地日期，避免 UTC 时区偏差）
   var d2=GS(),today=todayKey();
@@ -1795,12 +1793,21 @@ function scrollTop(){if(window.innerWidth<=768)window.scrollTo({top:0,behavior:'
 
 var _rwtSkip=0;
 
-function rW(q){
-  var d=GS();
+// 错题掌握分统一为 0-3：答对加一，答错减一，达到3移出主动错题本。
+function adjustErrorStreak(d,q,ok){
+  d.w=d.w||[];
   var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
   if(ei===-1){
-    d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-  } else {d.w[ei].streak=Math.max(0,(d.w[ei].streak||0)-1)}
+    if(!ok)d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
+    return;
+  }
+  var score=Math.max(0,Math.min(3,(d.w[ei].streak||0)+(ok?1:-1)));
+  if(ok&&score>=3)d.w.splice(ei,1);else d.w[ei].streak=score;
+}
+
+function rW(q){
+  var d=GS();
+  adjustErrorStreak(d,q,false);
   d.done[q.id]={law:q.lawName,ok:false,time:new Date().toISOString()};
   SS(d);
   debounceSync();
@@ -2373,9 +2380,9 @@ function updateMemState(q,ok){
     var prev=geM(q.id);score=prev&&prev.reps>=3?5:4; // fast + consecutive correct = 5
   }
 
-  // Update consecutive correct tracking
-  if(score>=3){mem.consecutiveCorrect=(mem.consecutiveCorrect||0)+1}
-  else{mem.consecutiveCorrect=0}
+  // Update the same 0-3 mastery score used by the error book.
+  if(score>=3){mem.consecutiveCorrect=Math.min(3,(mem.consecutiveCorrect||0)+1)}
+  else{mem.consecutiveCorrect=Math.max(0,(mem.consecutiveCorrect||0)-1)}
 
   // SM-2 phase logic
   if(score>=3){
@@ -2437,11 +2444,7 @@ function commitExamQ(q){
   d.firstSeen=d.firstSeen||{};
   if(!d.firstSeen[q.id])d.firstSeen[q.id]={date:todayKey(),law:q.lawName};
   d.done[q.id]={law:q.lawName,ok:ok,time:new Date().toISOString()};
-  if(!ok){
-    var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
-    if(ei===-1)d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-    else d.w[ei].streak=Math.max(0,(d.w[ei].streak||0)-1);
-  }
+  adjustErrorStreak(d,q,ok);
   updateMemState(q,ok);
   upKW(q,ok);
   if(!_memBatch)SS(GS());
@@ -2756,11 +2759,7 @@ function endExam(){
     dd.firstSeen=dd.firstSeen||{};
     if(!dd.firstSeen[q.id])dd.firstSeen[q.id]={date:todayKey(),law:q.lawName};
     dd.done[q.id]={law:q.lawName,ok:ok,time:new Date().toISOString()};
-    if(!ok){
-      var ei=dd.w.findIndex(function(w){return String(w.id)===String(q.id)});
-      if(ei===-1)dd.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
-      else dd.w[ei].streak=Math.max(0,(dd.w[ei].streak||0)-1);
-    }
+    adjustErrorStreak(dd,q,ok);
     updateMemState(q,ok);
     upKW(q,ok);
   });
