@@ -1592,7 +1592,7 @@ function rA(q,ok,ua){
   h+='<button class="btn btn-blue chat-send" onclick="sendChat(\''+cid+'\')">发送</button>';
   h+='</div></div></details>';
 
-  h+='<details id="resolveDetail" class="answer-secondary"><summary>原始解析</summary><div class="secondary-body answer-resolution">'+esc(res)+'</div></details>';
+  h+='<details id="resolveDetail" class="answer-secondary" open><summary>原始解析</summary><div class="secondary-body answer-resolution">'+esc(res)+'</div></details>';
 
   h+='<details class="answer-secondary"><summary>添加笔记</summary><div class="secondary-body">'+renderNoteBox(q)+'</div></details>';
   c.innerHTML=h;
