@@ -58,6 +58,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .home-card{background:var(--card);border-radius:var(--radius);padding:12px 16px;border:1px solid var(--border-light);box-shadow:var(--shadow-sm);transition:var(--transition)}
 .home-card:hover{box-shadow:var(--shadow);border-color:var(--border);transform:translateY(-1px)}
 .hcard-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;margin-bottom:8px;box-shadow:var(--shadow-sm)}
+.free-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.free-head .hcard-icon{margin-bottom:0;flex-shrink:0}
+.free-head h3{margin:0}
+.free-head .hcard-desc{margin:0}
 .home-card h3{font-size:15px;font-weight:600;color:var(--text);margin:0 0 6px}
 .subj-split{margin-left:auto;display:flex;gap:9px;align-items:center;font-size:10px;white-space:nowrap}
 .subj-split i{font-style:normal;color:var(--text-tertiary);margin:0 1px;font-weight:400}
@@ -206,6 +210,14 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .chat-msg{padding:6px 10px;border-radius:8px;font-size:12px;line-height:1.6;margin-bottom:4px}
 .chat-msg.user{background:var(--border-light);color:var(--text)}
 .chat-msg.ai{background:var(--primary-soft);color:var(--text);white-space:pre-wrap}
+.answer-secondary{margin-top:10px;border-top:1px solid var(--border-light);font-size:12px}
+.answer-secondary>summary{padding:9px 2px;color:var(--text-secondary);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.answer-secondary>summary::-webkit-details-marker{display:none}
+.answer-secondary>summary::after{content:'+';font-size:16px;color:var(--text-tertiary);line-height:1}
+.answer-secondary[open]>summary::after{content:'−'}
+.answer-secondary .secondary-body{padding:2px 0 4px}
+.answer-secondary .note-block{margin-top:0;border-top:0;padding-top:0}
+.answer-secondary .note-hint{display:none}
 .chat-input-row{display:flex;gap:6px}
 .chat-inp{flex:1;padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);outline:none;min-width:0;background:var(--card);transition:var(--transition)}
 .chat-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
@@ -473,6 +485,20 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .smart-btn{display:inline-block;padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text-secondary);transition:var(--transition);background:var(--card)}
 .smart-btn:hover{border-color:var(--primary);color:var(--primary)}
 .smart-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.settings-form{display:grid;gap:10px}
+.settings-field{display:grid;gap:5px}
+.settings-label{font-size:12px;font-weight:600;color:var(--text-secondary)}
+.settings-input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);font:inherit;font-size:12px;outline:none}
+.settings-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.settings-note{font-size:10px;line-height:1.6;color:var(--text-tertiary)}
+.settings-security{padding:8px 10px;border-radius:var(--radius-sm);background:var(--warning-soft);color:#9a6700;font-size:10px;line-height:1.6}
+.settings-tools{display:flex;gap:8px;flex-wrap:wrap}
+.settings-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.secret-row{display:flex;gap:6px}
+.secret-row .settings-input{flex:1}
+.secret-toggle{flex-shrink:0;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--border-light);color:var(--text-secondary);font-size:11px;cursor:pointer}
+.dark .settings-security{background:#332818;color:#d4a25f}
+.dark .secret-toggle{background:#322c24;color:#b8b0a2;border-color:#4a4339}
 /* === 改版 v2：目标 / 推荐 / 习惯 / AI教练 === */
 .goalbar{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .gb-left{text-align:center;min-width:54px}
@@ -504,7 +530,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .ml-tag{font-size:11px;background:var(--success-soft);color:var(--success-600);padding:3px 8px;border-radius:99px;font-weight:500}
 .ml-empty{font-size:12px;color:var(--text-tertiary)}
 .co-body{font-size:12px;color:var(--text-secondary);line-height:1.6}
-.p-exam{background:var(--primary-soft);border-color:#c3d4e6}
+.p-exam{background:var(--card);border-color:var(--border-light)}
 .ex-t{font-size:13px;font-weight:600;color:var(--primary-600);margin-bottom:8px}
 .ex-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);padding:2px 0;border-bottom:1px dashed var(--border-light)}
 .note-block{margin-top:14px;border-top:1px dashed var(--border-light);padding-top:12px}
@@ -672,9 +698,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
   <div class="home-cards">
     <!-- 自由刷题 -->
     <div class="home-card" id="cardFree">
-      <div class="hcard-icon ic-primary"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-      <h3>自由刷题</h3>
-      <p class="hcard-desc">自选科目与来源，随机出题练习</p>
+      <div class="free-head"><div class="hcard-icon ic-primary"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div><h3>自由刷题</h3><p class="hcard-desc">自选科目与来源，随机出题练习</p></div></div>
       <div class="src-toggle" id="srcToggle">
         <span id="srcTagZT" class="on" onclick="togSrc('ZT')">真题</span>
         <span id="srcTagMC" onclick="togSrc('MC')">模拟</span>
@@ -868,6 +892,13 @@ a{text-decoration:none;color:inherit}li{list-style:none}
           <span class="smart-btn" data-val="商经法" onclick="pickSmartVal(this,'subj')">商经法</span>
           <span class="smart-btn" data-val="理论法" onclick="pickSmartVal(this,'subj')">理论法</span>
           <span class="smart-btn" data-val="三国法" onclick="pickSmartVal(this,'subj')">三国法</span>
+        </div>
+      </div>
+      <div style="margin-bottom:12px"><b style="font-size:13px">题量</b>
+        <div style="display:flex;gap:6px;margin-top:6px" id="smartCount">
+          <span class="smart-btn" data-val="20" onclick="pickSmartVal(this,'count')">20题</span>
+          <span class="smart-btn" data-val="50" onclick="pickSmartVal(this,'count')">50题</span>
+          <span class="smart-btn active" data-val="100" onclick="pickSmartVal(this,'count')">100题</span>
         </div>
       </div>
     </div>
@@ -1319,14 +1350,14 @@ function startQuiz(){
   },function(e){document.getElementById('loader').classList.add('hidden');showLoadError();});
 }
 
-function doS(s,z,m){
+function doS(s,z,m,sessionSize){
   // === 出题参数(命名常量，方便统一调参) ===
-  var SESSION_SIZE=100;          // 每场题数
-  var MIN_NEW=70;               // 新题下限
-  var REVIEW_RELEARN=12;        // 复习位: 重学(降级回炉的题)
-  var REVIEW_OVERDUE=12;        // 复习位: 到期巩固(最该复习的题)
-  var REVIEW_LEARNING=4;        // 复习位: 学习中新题
-  var REVIEW_WEAK=2;            // 复习位: 章节薄弱
+  var SESSION_SIZE=sessionSize||100;
+  var MIN_NEW=Math.ceil(SESSION_SIZE*0.7);
+  var REVIEW_RELEARN=Math.max(1,Math.round(SESSION_SIZE*0.12));
+  var REVIEW_OVERDUE=Math.max(1,Math.round(SESSION_SIZE*0.12));
+  var REVIEW_LEARNING=Math.max(1,Math.round(SESSION_SIZE*0.04));
+  var REVIEW_WEAK=Math.max(1,Math.round(SESSION_SIZE*0.02));
   var FILL_RELEARN_MAX=50;      // 补位重学上限(防垄断,放 overdue/weak 等其他题型进来)
   var KW_WEAKNESS_THRESH=0.25;  // 章节薄弱判定阈值
   var MASTERED_EF=2.5;          // 已掌握: 最低 EF
@@ -1378,10 +1409,10 @@ function doS(s,z,m){
   shuffle(bucket.seen);
 
   // Dynamic allocation ratios
-  // === 固定 100 题，≥70 新题，顺序随机 ===
+  // === 按所选题量出题，至少七成新题，顺序随机 ===
   shuffle(bucket.unseen);
   var news=bucket.unseen.slice(0,MIN_NEW);
-  // 重学12 + 到期巩固12 + 学习4 + 薄弱2 = 30 复习位(各桶按比例分配)
+  // 复习位按所选题量同比缩放，避免短练习被复习题挤占。
   var rUsed={};
   function pushND(arr,cap){var out=[];for(var i=0;i<arr.length&&out.length<cap;i++){var id=String(arr[i].id);if(!rUsed[id]){rUsed[id]=1;out.push(arr[i]);}}return out;}
   var reviews=pushND(bucket.relearn,REVIEW_RELEARN)
@@ -1554,16 +1585,16 @@ function rA(q,ok,ua){
 
   // AI chat dialog
   var cid='chat-'+Date.now();
-  h+='<div id="'+cid+'" style="margin-top:8px">';
+  h+='<details class="answer-secondary"><summary>追问 AI</summary><div class="secondary-body" id="'+cid+'">';
   h+='<div class="chat-msgs" id="'+cid+'-msgs"></div>';
   h+='<div class="chat-input-row">';
   h+='<input id="'+cid+'-inp" type="text" placeholder="追问 AI..." class="chat-inp" onkeydown="if(event.key===\'Enter\')sendChat(\''+cid+'\')">';
   h+='<button class="btn btn-blue chat-send" onclick="sendChat(\''+cid+'\')">发送</button>';
-  h+='</div></div>';
+  h+='</div></div></details>';
 
-  h+='<details id=\"resolveDetail\" style="font-size:12px;line-height:1.7;color:#666;white-space:pre-line;margin-top:6px"><summary style="cursor:pointer;color:#2a5d8f"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 原始解析</summary><div style="padding:6px 0">'+esc(res)+'</div></details>';
+  h+='<details id="resolveDetail" class="answer-secondary"><summary>原始解析</summary><div class="secondary-body answer-resolution">'+esc(res)+'</div></details>';
 
-  h+='<div class="note-block">'+renderNoteBox(q)+'</div>';
+  h+='<details class="answer-secondary"><summary>添加笔记</summary><div class="secondary-body">'+renderNoteBox(q)+'</div></details>';
   c.innerHTML=h;
 
   // Call DeepSeek
@@ -1623,9 +1654,8 @@ function callDeepSeek(q, did, ua){
     } else {
       el.innerHTML='<div class="ai-empty">DeepSeek 暂未返回结果</div>';
     }
-    // Auto-expand 原始解析 after AI reply
+    // Cache the generated explanation for this question.
     aiCache[String(q.id)]=el.innerHTML;
-    setTimeout(function(){var d=document.getElementById('resolveDetail');if(d)d.open=true;},200);
   }).catch(function(e){
     var el=document.getElementById(did);
     if(el)el.innerHTML='<div class="ai-empty">DeepSeek 调用失败：'+esc(e.message||'网络错误')+'</div>';
@@ -1714,7 +1744,7 @@ fetch('ai_tutor.json').then(function(r){return r.json()}).then(LAI).catch(functi
 
 function pO(el,k,type){
   var q=S[I];if(A[q.id]&&A[q.id].r)return;
-  if(type===1){document.querySelectorAll('#optArea .quiz-opt').forEach(function(o){o.classList.remove('selected')});el.classList.add('selected');A[q.id]={a:k,r:false}}
+  if(type==1){document.querySelectorAll('#optArea .quiz-opt').forEach(function(o){o.classList.remove('selected')});el.classList.add('selected');A[q.id]={a:k,r:false}}
   else{el.classList.toggle('selected');var s=[];document.querySelectorAll('#optArea .quiz-opt.selected').forEach(function(o){s.push(o.getAttribute('data-opt'))});A[q.id]={a:s.join(','),r:false}}
   document.getElementById('qzHint').textContent='已选择答案：'+(A[q.id].a||'');
 }
@@ -1953,22 +1983,24 @@ function openSyncSettings(){
   var t=localStorage.getItem('syncToken')||'';
   var sid=localStorage.getItem('syncId')||'';
   var spv=localStorage.getItem('syncProxy')||'';
-  var h='<h3 style="margin:0 0 12px">云端同步设置</h3>';
-  h+='<p style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">使用 GitHub Gist 跨设备同步。需<a href="https://github.com/settings/tokens" target="_blank" style="color:var(--primary)">创建 Token</a>（只勾 gist）。</p>';
-  h+='<input id="syncTokenInput" value="'+t.replace(/"/g,'&quot;')+'" placeholder="粘贴 GitHub Token" style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:10px">';
-  h+='<input id="syncProxyInput" value="'+spv.replace(/"/g,'&quot;')+'" placeholder="可选·同步代理地址（如 https://xxx.workers.dev），国内网络转发 api.github.com" style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:10px">';
-  h+='<p style="font-size:10px;color:var(--text-tertiary);margin:0 0 8px">留空=直连 api.github.com（国内常不通）；填 Cloudflare Worker 地址可绕开。详见对话里的 Worker 代码。</p>';
-  if(sid){h+='<p style="font-size:11px;color:#10b981;margin:0 0 8px">✓ 已关联云端数据</p>'}
-  else if(t){h+='<p style="font-size:11px;color:#ff9800;margin:0 0 8px">云端暂无数据，在任一设备刷题后自动创建</p>'}
+  var h='<h3 style="margin:0 0 14px">同步与 AI 设置</h3>';
+  h+='<div class="settings-form">';
+  h+='<div class="settings-field"><span class="settings-label">GitHub Token</span><div class="secret-row"><input id="syncTokenInput" class="settings-input" type="password" autocomplete="off" value="'+esc(t)+'" placeholder="粘贴仅勾选 gist 权限的 Token"><button class="secret-toggle" type="button" onclick="toggleSecretInput(\'syncTokenInput\',this)">显示</button></div><span class="settings-note">用于通过 GitHub Gist 保存跨设备学习数据。<a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:var(--primary)">创建 Token</a> 时只授予 gist 权限。</span></div>';
+  h+='<label class="settings-field"><span class="settings-label">同步代理地址（可选）</span><input id="syncProxyInput" class="settings-input" type="url" autocomplete="url" value="'+esc(spv)+'" placeholder="https://xxx.workers.dev"><span class="settings-note">留空直连 api.github.com；国内网络不稳定时可填写 Cloudflare Worker 代理地址。</span></label>';
+  if(sid){h+='<p class="settings-note" style="color:var(--success-600)">已关联云端数据</p>'}
+  else if(t){h+='<p class="settings-note" style="color:var(--warning)">已设置 Token，首次刷题后会自动创建云端数据</p>'}
   var dk=localStorage.getItem('deepseekKey')||'';
-  h+='<div style="margin:12px 0;border-top:1px solid var(--border-light);padding-top:10px"><p style="font-size:12px;color:var(--text-tertiary);margin:0 0 4px">DeepSeek API Key（用于AI分析，不填则无AI分析）</p>';
-  h+='<input id="deepseekKeyInput" value="'+dk.replace(/"/g,'&quot;')+'" placeholder="sk-..." style="width:100%;padding:8px 12px;border-radius:8px;border:0.5px solid #d0d4dc;font-size:12px;margin-bottom:4px">';
-  h+='<p style="font-size:10px;color:var(--text-tertiary);margin:0 0 4px">追问用 V4 Pro · 其他用 deepseek-chat</p><div style="border-top:1px solid var(--border-light);margin:8px 0"></div>';
-  h+='<p style="font-size:10px;color:var(--text-tertiary);margin:0 0 4px"><a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:var(--primary)">获取 Key</a></p></div>';
-  h+='<div style="text-align:right;margin-top:12px"><button class="btn btn-gray" onclick="exportData()" style="padding:5px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:5px 12px;font-size:11px;margin-left:6px">导入数据</button></div>';
-  h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-gray" onclick="closeDetail()" style="padding:5px 16px;font-size:12px;margin-right:8px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:5px 16px;font-size:12px">保存</button></div>';
+  h+='<div class="settings-field" style="border-top:1px solid var(--border-light);padding-top:10px"><span class="settings-label">DeepSeek API Key</span><div class="secret-row"><input id="deepseekKeyInput" class="settings-input" type="password" autocomplete="off" value="'+esc(dk)+'" placeholder="sk-..."><button class="secret-toggle" type="button" onclick="toggleSecretInput(\'deepseekKeyInput\',this)">显示</button></div><span class="settings-note">用于题目讲解、追问和学习建议。<a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--primary)">获取 Key</a>。追问使用 V4 Pro，其他功能使用 deepseek-chat。</span></div>';
+  h+='<div class="settings-security">密钥仅保存在当前浏览器，并会直接发送给对应服务。请只在个人设备使用，不要把 Token 或 API Key 分享给他人。</div>';
+  h+='<div class="settings-tools"><button class="btn btn-gray" onclick="exportData()" style="padding:7px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:7px 12px;font-size:11px">导入数据</button></div>';
+  h+='<div class="settings-actions"><button class="btn btn-gray" onclick="closeDetail()" style="padding:7px 14px;font-size:12px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:7px 14px;font-size:12px">保存</button></div>';
+  h+='</div>';
   document.getElementById('detailBox').innerHTML=h;
   document.getElementById('detailModal').classList.add('show');
+}
+function toggleSecretInput(id,btn){
+  var el=document.getElementById(id);if(!el)return;
+  var show=el.type==='password';el.type=show?'text':'password';if(btn)btn.textContent=show?'隐藏':'显示';
 }
 function saveSyncToken(){
   var t=document.getElementById('syncTokenInput').value.trim();
@@ -2336,7 +2368,7 @@ function updateMemState(q,ok){
   var score;
   if(!ok){
     var type=q.type||1,ua=A[q.id].a||'',ca=q.correctAnswer||'';
-    if(type===1||ca.length<=2){score=0} // single choice or short answer: wrong
+    if(type==1||ca.length<=2){score=0} // single choice or short answer: wrong
     else{var uSet=ua.split(','),cSet=ca.split(',');var match=cSet.filter(function(x){return uSet.indexOf(x)>=0}).length;score=match>0?2:1} // multi: partial=2, all wrong=1
   }else{
     var prev=geM(q.id);score=prev&&prev.reps>=3?5:4; // fast + consecutive correct = 5
@@ -2519,10 +2551,12 @@ function doSmartExam(){
     // 获取科目
     var subjEl=document.querySelector('#smartSingle #smartSubjs .smart-btn.active');
     var subj=subjEl?subjEl.getAttribute('data-val'):'民法';
-    // 统一规则：固定100题、≥70新题（与自由刷题一致，复用 doS）
+    var countEl=document.querySelector('#smartSingle #smartCount .smart-btn.active');
+    var count=countEl?parseInt(countEl.getAttribute('data-val'),10):100;
+    // 统一规则：按所选题量出题、至少七成新题（与自由刷题一致，复用 doS）
     closeSmart();
     EXAM_MODE=false;
-    doS([subj], srcs.indexOf('真题')>=0, srcs.indexOf('模拟题')>=0);
+    doS([subj], srcs.indexOf('真题')>=0, srcs.indexOf('模拟题')>=0, count);
     return;
   } else {
     // 智能组卷: 卷一 or 卷二（参照历年法考客观题分值分布）
@@ -2692,7 +2726,7 @@ function endExam(){
   var errors=[];
   S.forEach(function(q){
     var a=A[q.id];
-    if(!a||a.a!==q.correctAnswer){
+    if(!a||normAns(a.a)!==normAns(q.correctAnswer)){
       errors.push({law:q.lawName,content:(q.content||'').substring(0,100),correct:q.correctAnswer,myAnswer:a?a.a:''});
     }
   });
@@ -2857,11 +2891,23 @@ function renderGoalBar(){
 }
 function editGoal(){
   var g=getGoal();
-  var d1=prompt('法考笔试日期 (YYYY-MM-DD)',g.examDate);
-  if(d1===null)return;
-  var d2=prompt('每日目标题量',g.daily);
-  if(d2===null)return;
-  g.examDate=d1;g.daily=parseInt(d2)||60;saveGoal(g);
+  var h='<h3 style="margin:0 0 14px">学习目标</h3>';
+  h+='<div class="settings-form">';
+  h+='<label class="settings-field"><span class="settings-label">法考笔试日期</span><input id="goalDateInput" class="settings-input" type="date" value="'+esc(g.examDate)+'"></label>';
+  h+='<label class="settings-field"><span class="settings-label">每日目标题量</span><input id="goalDailyInput" class="settings-input" type="number" min="1" max="1000" step="1" value="'+(parseInt(g.daily,10)||60)+'"></label>';
+  h+='<p class="settings-note">目标只保存在当前浏览器，用于计算倒计时、今日进度和连续学习天数。</p>';
+  h+='<div class="settings-actions"><button class="btn btn-gray" onclick="closeDetail()" style="padding:7px 14px;font-size:12px">取消</button><button class="btn btn-blue" onclick="saveGoalForm()" style="padding:7px 14px;font-size:12px">保存目标</button></div>';
+  h+='</div>';
+  document.getElementById('detailBox').innerHTML=h;
+  document.getElementById('detailModal').classList.add('show');
+}
+function saveGoalForm(){
+  var dateEl=document.getElementById('goalDateInput'),dailyEl=document.getElementById('goalDailyInput');
+  var date=dateEl?dateEl.value:'',daily=dailyEl?parseInt(dailyEl.value,10):0;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('请选择有效的考试日期');return}
+  if(!daily||daily<1||daily>1000){alert('每日目标题量应为1至1000题');return}
+  saveGoal({examDate:date,daily:daily});
+  closeDetail();
 }
 function renderHomeReco(){
   var el=document.getElementById('recoBody');if(!el)return;
