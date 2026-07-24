@@ -103,7 +103,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .btn:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
 
 /* Quiz */
-.quiz-header{background:var(--card);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:var(--shadow);position:sticky;top:0;z-index:50;border:1px solid var(--border-light);border-top:none}
+.quiz-header{background:rgba(251,250,246,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:var(--shadow);position:sticky;top:0;z-index:50;border:1px solid var(--border-light);border-top:none}
 .quiz-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;min-width:0;overflow:hidden}
 .quiz-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}
 .quiz-progress{display:flex;align-items:baseline;gap:4px;flex-shrink:0}
@@ -229,7 +229,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .chat-send{padding:5px 14px;font-size:12px;flex-shrink:0}
 
 /* Bottom controls */
-.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:var(--bg);padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(6px)}
+.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:rgba(251,250,246,.78);padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .quiz-counter{font-size:13px;color:var(--text-tertiary);display:flex;gap:20px}
 
 /* Summary */
@@ -328,8 +328,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .eb-topic-h{background:#35201d;color:#dd7970}
 .dark .eb-name{color:#efe9dc}
 .dark .eb-detail-title{color:#efe9dc}
-.dark .bottom-controls{background:#1a1d20;border-color:#322c24}
-.dark .quiz-header{background:#211d18!important;color:#efe9dc!important;border-color:#322c24}
+.dark .bottom-controls{background:rgba(26,29,32,.78);border-color:#322c24}
+.dark .quiz-header{background:rgba(33,29,24,.78)!important;color:#efe9dc!important;border-color:#322c24}
 .dark .quiz-current{color:#fff!important}
 .dark .quiz-pill{background:#322c24}
 .dark .quiz-rate{color:#efe9dc!important}
