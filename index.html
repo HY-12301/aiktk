@@ -973,7 +973,7 @@ var STATE=null;
 function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h=d.h||[];d.done=d.done||{};d.mem=d.mem||{};d.kw=d.kw||{};d.todayLog=d.todayLog||[];d.firstSeen=d.firstSeen||{};
   // 兼容旧数据：把已存在 done 的题标记为“很早以前已学”，避免升级后首日把旧题误算为今日新学
   if(Object.keys(d.firstSeen).length===0&&d.done&&Object.keys(d.done).length){Object.keys(d.done).forEach(function(id){d.firstSeen[id]={date:'2000-01-01',law:(d.done[id]&&d.done[id].law)||''}});}
-  d.notes=d.notes||{};d.flags=d.flags||{};return d}
+  d.notes=d.notes||{};d.noteUpdated=d.noteUpdated||{};d.flags=d.flags||{};d.flagUpdated=d.flagUpdated||{};return d}
 function SS(d){STATE=d;try{localStorage.setItem('s',JSON.stringify(d))}catch(e){if(!SS._q){SS._q=true;console.error('本地存储写入失败(可能已满):',e);setTimeout(function(){alert('⚠️ 本地存储空间已满，部分学习进度可能无法保存。建议导出备份或清理浏览器数据。')},400)}}}
 function GS(){if(!STATE)STATE=loadState();return STATE}
 
@@ -1051,6 +1051,16 @@ function ungzB64(str){
   return Promise.resolve(str);
 }
 
+function fetchGistData(id){
+  return fetch(syncApiBase()+'/'+id,{headers:syncHeaders()}).then(function(r){
+    if(!r.ok)throw Error('HTTP '+r.status);
+    return r.json();
+  }).then(async function(gist){
+    if(!gist.files||!gist.files['quiz_data.json'])throw Error('同步文件不存在');
+    return JSON.parse(await ungzB64(gist.files['quiz_data.json'].content));
+  });
+}
+
 function cloudSyncPull(){
   if(!SYNC_TOKEN){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','未同步');return;}
   if(!SYNC_ID){
@@ -1071,6 +1081,15 @@ function cloudSyncPull(){
   pullGist(SYNC_ID);
 }
 function pullGist(id){
+  setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>','同步中');
+  fetchGistData(id).then(function(remote){
+    SS(mergeSyncState(LS(),remote));
+    setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>','已同步');
+  }).catch(function(){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','仅本机');});
+}
+
+// 保留旧实现便于回滚，新的 pullGist 使用统一的冲突合并逻辑。
+function pullGistLegacy(id){
   setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>','同步中');
   fetch(syncApiBase()+'/'+id,{headers:syncHeaders()})
     .then(function(r){if(!r.ok)throw Error();return r.json()})
@@ -1106,14 +1125,104 @@ function pullGist(id){
     }).catch(function(){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','仅本机');});
 }
 
+function recordStamp(v,fields){
+  for(var i=0;i<fields.length;i++){if(v&&v[fields[i]])return String(v[fields[i]]);}
+  return '';
+}
+function mergeLatestMap(local,remote,fields){
+  var out={};
+  [remote||{},local||{}].forEach(function(src){Object.keys(src).forEach(function(k){
+    var old=out[k],next=src[k];
+    if(!old||recordStamp(next,fields)>=recordStamp(old,fields))out[k]=next;
+  });});
+  return out;
+}
+function mergeWrong(a,b){
+  var out={};
+  (b||[]).concat(a||[]).forEach(function(item){
+    var id=String(item.id),old=out[id],nextStamp=recordStamp(item,['updatedAt','time']);
+    if(!old||nextStamp>=recordStamp(old,['updatedAt','time']))out[id]=item;
+  });
+  return Object.keys(out).map(function(id){return out[id]});
+}
+function mergeEvents(a,b,keyFn){
+  var out={};
+  (b||[]).concat(a||[]).forEach(function(item){out[keyFn(item)]=item;});
+  return Object.keys(out).map(function(k){return out[k]});
+}
+function mergeDaysStable(a,b){
+  var out={};
+  (b||[]).concat(a||[]).forEach(function(item){
+    var key=(item.date||'').substring(0,10),old=out[key];
+    if(!old||((item.t||0)>(old.t||0))||((item.t||0)===(old.t||0)&&(item.k||0)>=(old.k||0)))out[key]={date:item.date,t:item.t||0,k:item.k||0,b:item.b||0};
+  });
+  return Object.keys(out).map(function(k){return out[k]});
+}
+function mergeKW(local,remote){
+  var out={};
+  [remote||{},local||{}].forEach(function(src){Object.keys(src).forEach(function(k){
+    var old=out[k],next=src[k];
+    if(!old||(next.t||0)>(old.t||0)||((next.t||0)===(old.t||0)&&String(next.ts||'')>=String(old.ts||'')))out[k]=next;
+  });});
+  return out;
+}
+function mergeVersionedMap(local,remote,localMeta,remoteMeta){
+  var values={},meta={},keys={};
+  Object.keys(local||{}).forEach(function(k){keys[k]=1});Object.keys(remote||{}).forEach(function(k){keys[k]=1});
+  Object.keys(localMeta||{}).forEach(function(k){keys[k]=1});Object.keys(remoteMeta||{}).forEach(function(k){keys[k]=1});
+  Object.keys(keys).forEach(function(k){
+    var lh=Object.prototype.hasOwnProperty.call(local||{},k),rh=Object.prototype.hasOwnProperty.call(remote||{},k);
+    var lt=String((localMeta||{})[k]||''),rt=String((remoteMeta||{})[k]||'');
+    if(rt>lt){if(rh)values[k]=remote[k];if(rt)meta[k]=rt;}
+    else if(lt>rt){if(lh)values[k]=local[k];if(lt)meta[k]=lt;}
+    else if(lh){values[k]=local[k];if(lt)meta[k]=lt;}
+    else if(rh){values[k]=remote[k];if(rt)meta[k]=rt;}
+  });
+  return{values:values,meta:meta};
+}
+function mergeFirstSeen(local,remote){
+  var out={};
+  [remote||{},local||{}].forEach(function(src){Object.keys(src).forEach(function(k){
+    var old=out[k],next=src[k],od=old&&old.date||'9999-12-31',nd=next&&next.date||'9999-12-31';
+    if(!old||nd<od)out[k]=next;
+  });});
+  return out;
+}
+function mergeSyncState(local,remote){
+  local=local||{};remote=remote||{};
+  // 先保留本地未知字段，再用远端同名字段覆盖；下面的逐项合并会处理可冲突数据。
+  var m={};for(var k in local)m[k]=local[k];for(var k in remote)m[k]=remote[k];
+  m.todayLog=mergeEvents(local.todayLog,remote.todayLog,function(e){return String(e.id)+'|'+String(e.time||'')+'|'+String(e.ok)});
+  m.exams=Math.max(local.exams||0,remote.exams||0);
+  m.examScores=mergeEvents(local.examScores,remote.examScores,function(e){return String(e.date)+'|'+String(e.score)+'|'+String(e.max)});
+  m.w=mergeWrong(local.w,remote.w);
+  m.done=mergeLatestMap(local.done,remote.done,['time']);
+  m.mem=mergeLatestMap(local.mem,remote.mem,['lastReview','nextReview']);
+  m.kw=mergeKW(local.kw,remote.kw);
+  m.h=mergeDaysStable(local.h,remote.h);
+  m.t=Math.max(local.t||0,remote.t||0);m.k=Math.max(local.k||0,remote.k||0);m.s=Math.max(local.s||0,remote.s||0);
+  var notes=mergeVersionedMap(local.notes,remote.notes,local.noteUpdated,remote.noteUpdated);
+  m.notes=notes.values;m.noteUpdated=notes.meta;
+  var flags=mergeVersionedMap(local.flags,remote.flags,local.flagUpdated,remote.flagUpdated);
+  m.flags=flags.values;m.flagUpdated=flags.meta;
+  m.firstSeen=mergeFirstSeen(local.firstSeen,remote.firstSeen);
+  var localGoalAt=String(local.goalUpdated||''),remoteGoalAt=String(remote.goalUpdated||'');
+  if(remote.goal&&remoteGoalAt>localGoalAt){m.goal=remote.goal;m.goalUpdated=remoteGoalAt;}
+  else if(local.goal){m.goal=local.goal;m.goalUpdated=localGoalAt||remoteGoalAt;}
+  else if(remote.goal){m.goal=remote.goal;m.goalUpdated=remoteGoalAt;}
+  return m;
+}
+
 async function cloudSyncPush(showBadge){if(showBadge===undefined)showBadge=true;
   var data=LS();if(showBadge)setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>','保存中');
+  // 推送前先合并远端快照，避免直接用本机旧快照覆盖另一台设备的更新。
+  if(SYNC_ID){try{var remote=await fetchGistData(SYNC_ID);data=mergeSyncState(data,remote);SS(data);}catch(e){setSyncBadge('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','离线');return;}}
   var content;
   try{
     content=await gzB64(JSON.stringify(data));
     // Gist 单文件硬上限 1MB（base64 形式）。重度用户（刷满 1.7 万题）可能逼近/突破，
     // 超出时先降级丢弃纯统计历史字段(done/h)，保留记忆/错题/薄弱点/笔记/标记等学习核心；
-    // 拉回合并时本机 done/h 仍被 mergeObj/mergeDays 保留，降级同步不影响学习数据。
+    // 拉回合并时本机 done/h 仍会按各自规则合并，降级同步不影响学习数据。
     if(content.length>1000000){
       var lite={};for(var k in data)lite[k]=data[k];
       delete lite.done;delete lite.h;
@@ -1633,8 +1742,8 @@ function renderNoteBox(q){
   h+='<button class="btn btn-blue note-save" onclick="saveNote(\''+id+'\')">保存笔记</button><span id="noteSaved-'+id+'" class="note-saved"></span></div>';
   return h;
 }
-function saveNote(id){var d=GS();var ta=document.getElementById('noteTA-'+id);if(!ta)return;d.notes=d.notes||{};d.notes[id]=ta.value;SS(d);var sp=document.getElementById('noteSaved-'+id);if(sp){sp.textContent='已保存 ✓';setTimeout(function(){sp.textContent=''},1500)};debounceSync();}
-function qMarkToggle(){if(!S||!S[I])return;var id=String(S[I].id);var d=GS();d.flags=d.flags||{};var btn=document.getElementById('qFlagBtn');if(d.flags[id]){delete d.flags[id];if(btn){btn.classList.remove('on');btn.innerHTML='☆ 标记'}}else{d.flags[id]=true;if(btn){btn.classList.add('on');btn.innerHTML='★ 已标记'}}SS(d);debounceSync();}
+function saveNote(id){var d=GS();var ta=document.getElementById('noteTA-'+id);if(!ta)return;d.notes=d.notes||{};d.noteUpdated=d.noteUpdated||{};d.notes[id]=ta.value;d.noteUpdated[id]=nowISO();SS(d);var sp=document.getElementById('noteSaved-'+id);if(sp){sp.textContent='已保存 ✓';setTimeout(function(){sp.textContent=''},1500)};debounceSync();}
+function qMarkToggle(){if(!S||!S[I])return;var id=String(S[I].id);var d=GS();d.flags=d.flags||{};d.flagUpdated=d.flagUpdated||{};var btn=document.getElementById('qFlagBtn');if(d.flags[id]){delete d.flags[id];if(btn){btn.classList.remove('on');btn.innerHTML='☆ 标记'}}else{d.flags[id]=true;if(btn){btn.classList.add('on');btn.innerHTML='★ 已标记'}}d.flagUpdated[id]=nowISO();SS(d);debounceSync();}
 
 function callDeepSeek(q, did, ua){
   // 回看已提交题：命中缓存直接渲染，不再重复请求 DeepSeek / 写回 kw
@@ -1787,7 +1896,7 @@ function submitAnswer(){
   if(d2.h.length>50)d2.h=d2.h.slice(-50);
   // 今日新学：记录每日作答（用于“今日已学”统计），仅保留当日记录
   d2.todayLog=d2.todayLog||[];
-  d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:today});
+  d2.todayLog.push({id:q.id,law:q.lawName,ok:ok,time:nowISO()});
   d2.todayLog=d2.todayLog.filter(function(e){return (e.time||'').substring(0,10)===today});
     var tp=topicName(q);
   if(!ok)WW[tp]=(WW[tp]||0)+1;
@@ -1820,11 +1929,11 @@ function adjustErrorStreak(d,q,ok){
   d.w=d.w||[];
   var ei=d.w.findIndex(function(w){return String(w.id)===String(q.id)});
   if(ei===-1){
-    if(!ok)d.w.push({id:q.id,time:new Date().toISOString(),s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});
+    if(!ok){var ts=nowISO();d.w.push({id:q.id,time:ts,updatedAt:ts,s:q.lawName,c:(q.content||'').substring(0,80),a:q.correctAnswer,streak:0});}
     return;
   }
   var score=Math.max(0,Math.min(3,(d.w[ei].streak||0)+(ok?1:-1)));
-  if(ok&&score>=3)d.w.splice(ei,1);else d.w[ei].streak=score;
+  d.w[ei].streak=score;d.w[ei].updatedAt=nowISO();
 }
 
 function rW(q){
@@ -1914,7 +2023,7 @@ function eQ(){
 var EB_FLAG_ONLY=false;
 function toggleEbFlag(){EB_FLAG_ONLY=!EB_FLAG_ONLY;var b=document.getElementById('ebFlagFilter');if(b)b.classList.toggle('on',EB_FLAG_ONLY);rEB();}
 function rEB(){
-  var d=GS(),w=d.w||[];
+  var d=GS(),w=(d.w||[]).filter(function(e){return (e.streak||0)<3});
   if(EB_FLAG_ONLY){w=w.filter(function(e){return d.flags&&d.flags[String(e.id)]});}
   document.getElementById('ebTotal').textContent=w.length+' 题';
   if(!w.length){document.getElementById('ebGrid').innerHTML='<div class="eb-empty">'+(EB_FLAG_ONLY?'没有标记的题目':'暂无错题，继续保持！')+'</div>';return}
@@ -2261,14 +2370,14 @@ function quizFromErrors(){
 
 // Build error subject tags & show modal
 function openErrSubj(){
-  if(!document.getElementById('errSubjTags').children.length){
+  // 每次打开都刷新数量，避免错题刚答对后仍显示旧的科目计数。
+  document.getElementById('errSubjTags').innerHTML='';
     var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
     var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
-    // Count relearning questions per subject
-    var mem=GS().mem||{},counts={},qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
-    Object.keys(mem).forEach(function(qid){
-      if(mem[qid].phase!=='relearning')return;
-      var q=qById[qid];
+    // 统计当前主动错题池，不再按旧的 SM-2 relearning 阶段统计。
+    var wrong=(GS().w||[]).filter(function(e){return (e.streak||0)<3}),counts={},qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
+    wrong.forEach(function(err){
+      var q=qById[String(err.id)];
       if(q){var kk=Object.keys(subMap).find(function(k){return subMap[k]===q.lawName});if(kk)counts[kk]=(counts[kk]||0)+1}
     });
     var h='';
@@ -2281,7 +2390,6 @@ function openErrSubj(){
       h+='</div>';
     });
     document.getElementById('errSubjTags').innerHTML=h;
-  }
   document.getElementById('errSubjModal').classList.add('show');
 }
 
@@ -2295,18 +2403,15 @@ function startErrQuiz(){
     if(name)subs.push(name.textContent);
   });
   closeErrSubj();
-  // Get questions in relearning phase from memory state
-  var mem=GS().mem||{},relearnIds=[];
-  Object.keys(mem).forEach(function(qid){
-    if(mem[qid].phase==='relearning')relearnIds.push(qid);
-  });
+  // 错题页是主动错题池的手动入口，不受 nextReview 是否到期限制。
+  var wrong=(GS().w||[]).filter(function(e){return (e.streak||0)<3}),relearnIds=wrong.map(function(e){return String(e.id)});
   if(subs.length>0){
     relearnIds=relearnIds.filter(function(id){
       var q=Q.find(function(qq){return String(qq.id)===id});
       return q&&subs.indexOf(q.lawName)!==-1;
     });
   }
-  if(!relearnIds.length){alert('所选科目没有需要重学的题目');return}
+  if(!relearnIds.length){alert('所选科目没有需要巩固的错题');return}
   doQuizFromErrors(relearnIds.map(function(id){return {id:id}}));
 }
 
@@ -2477,7 +2582,7 @@ var EXAM_START=0;
 function updateTimerEl(t,warn){var el=document.getElementById('qzTimer');if(el){el.textContent=t;el.classList.toggle('warn',!!warn);el.style.display='';}}
 // 隐藏计时器（清空计时并复位显示），用于进入自由刷题 / 交卷后
 function hideTimer(){if(EXAM_TIMER){clearInterval(EXAM_TIMER);EXAM_TIMER=null}var te=document.getElementById('qzTimer');if(te)te.style.display='none';}
-function unflag(id){var d=GS();if(d.flags)delete d.flags[String(id)];SS(d);debounceSync();}
+function unflag(id){var d=GS();d.flags=d.flags||{};d.flagUpdated=d.flagUpdated||{};delete d.flags[String(id)];d.flagUpdated[String(id)]=nowISO();SS(d);debounceSync();}
 function quizFromFlags(){
   var d=GS();var ids=Object.keys(d.flags||{});
   if(!ids.length){alert('还没有标记任何题目');return}
@@ -2885,7 +2990,7 @@ function getGoal(){
   if(!d.goal.daily)d.goal.daily=60;
   return d.goal;
 }
-function saveGoal(g){var d=GS();d.goal=g;SS(d);renderGoalBar();}
+function saveGoal(g){var d=GS();d.goal=g;d.goalUpdated=nowISO();SS(d);debounceSync();renderGoalBar();}
 function renderGoalBar(){
   var g=getGoal();
   var today=new Date();today.setHours(0,0,0,0);
