@@ -130,6 +130,11 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-card{padding:22px 26px}
 .quiz-stuff{background:var(--border-light);padding:12px 16px;border-radius:10px;border-left:4px solid var(--primary);margin-bottom:16px;font-size:14px;line-height:1.8;white-space:pre-line;max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .quiz-type{font-size:12px;color:var(--text-tertiary);margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.quiz-type [data-phase]{padding:1px 6px;border-radius:3px;font-size:10px}
+.quiz-type [data-phase=new],.quiz-type [data-phase=wrong]{background:var(--danger-soft);color:var(--danger)}
+.quiz-type [data-phase=relearning],.quiz-type [data-phase=marked]{background:var(--warning-soft);color:var(--warning)}
+.quiz-type [data-phase=seen]{background:var(--border-light);color:var(--text-secondary)}
+.quiz-type [data-phase=mastered]{background:var(--success-soft);color:var(--success)}
 .quiz-question{font-size:16px;line-height:1.8;letter-spacing:.3px;margin-bottom:22px;color:var(--text);font-weight:500}
 .quiz-options{margin-bottom:14px}
 .quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.55;transition:var(--transition);background:var(--card)}
@@ -283,6 +288,10 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark [data-phase=relearning]{background:#332818!important;color:#d4a25f!important}
 .dark [data-phase=exponential]{background:#182d22!important;color:#62ad84!important}
 .dark [data-phase=new]{background:#35201d!important;color:#dd7970!important}
+.dark [data-phase=wrong]{background:#35201d!important;color:#dd7970!important}
+.dark [data-phase=marked]{background:#332818!important;color:#d4a25f!important}
+.dark [data-phase=seen]{background:#322c24!important;color:#b8b0a2!important}
+.dark [data-phase=mastered]{background:#182d22!important;color:#62ad84!important}
 .dark .toolbar .tabs{background:#322c24}
 .dark .toolbar .tabs a{color:#b8b0a2}
 .dark .toolbar .tabs a:hover,.dark .toolbar .tabs a.active{color:#fff;background:#2a5d8f}
@@ -1476,6 +1485,18 @@ function syncQuizButtons(isSubmitted){
   if(p)p.disabled=I<=0;
 }
 
+function quizPoolCategory(q){
+  var d=GS(),id=String(q.id),mem=geM(q.id),done=(d.done||{})[id];
+  var mastered=mem&&mem.ef>=2.5&&mem.interval>=30&&mem.reps>=3;
+  if(mastered)return'mastered';
+  if(!mem&&!done&&!(d.firstSeen&&d.firstSeen[id]))return'new';
+  var wrongHistory=!!(mem&&mem.totalWrong>0)||(d.w||[]).some(function(w){return String(w.id)===id});
+  var score=mem?mem.consecutiveCorrect||0:0;
+  if((done&&done.ok===false)||(wrongHistory&&score<3))return mem&&mem.phase==='relearning'?'relearning':'wrong';
+  if(d.flags&&d.flags[id])return'marked';
+  return'seen';
+}
+
 function qR(){
   if(!S||!S.length||I>=S.length){
     if(EXAM_MODE)endExam();else eQ();return
@@ -1485,15 +1506,16 @@ function qR(){
   var h='<div class="quiz-card">';
   if(q.stuff&&q.stuff.trim())h+='<div class="quiz-stuff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> '+esc(q.stuff)+'</div>';
   h+='<div class="quiz-type"><span style="background:var(--primary-soft);color:var(--primary-600);padding:2px 8px;border-radius:3px;font-size:11px">'+T[q.type||1]+'</span><span>'+q.lawName+'</span><span>'+esc(q.source||'')+'</span>';
-  // Memory status tag
-  var mem=geM(q.id);
-  if(mem){
-    if(mem.phase==='new'||mem.phase==='learning')    h+='<span data-phase="learning" style="background:var(--primary-soft);color:var(--primary);padding:1px 6px;border-radius:3px;font-size:10px">复习'+(mem.learningStepIdx+1)+'</span>';
-    else if(mem.phase==='relearning')h+='<span data-phase="relearning" style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:3px;font-size:10px">重学</span>';
-    else if(mem.phase==='exponential')h+='<span data-phase="exponential" style="background:#e8f5e9;color:#059669;padding:1px 6px;border-radius:3px;font-size:10px">巩固</span>';
-  }else{
-    h+='<span data-phase="new" style="background:#fce4ec;color:#dc2626;padding:1px 6px;border-radius:3px;font-size:10px">新题</span>';
-  }
+  // Status tag follows the actual question pool, not the internal SM-2 phase.
+  var category=quizPoolCategory(q),labels={
+    new:{text:'新题',phase:'new'},
+    relearning:{text:'重学',phase:'relearning'},
+    wrong:{text:'错题巩固',phase:'wrong'},
+    marked:{text:'标记',phase:'marked'},
+    seen:{text:'已做',phase:'seen'},
+    mastered:{text:'已掌握',phase:'mastered'}
+  },tag=labels[category]||labels.seen;
+  h+='<span data-phase="'+tag.phase+'">'+tag.text+'</span>';
   var dF=GS();var flagged=!!(dF.flags&&dF.flags[String(q.id)]);
   h+='<button class="q-flag'+(flagged?' on':'')+'" id="qFlagBtn" type="button" onclick="qMarkToggle()">'+(flagged?'★ 已标记':'☆ 标记')+'</button>';
   h+='</div>';
