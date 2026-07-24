@@ -965,6 +965,8 @@ var DEEPSEEK_URL='https://api.deepseek.com/v1/chat/completions';
 // DEEPSEEK_MOD not used; deepseek-chat → flash, deepseek-v4-pro → chat
 var sessionSubjects=[];
 var M={subMF:'民法',subXF:'刑法',subXZF:'行政法',subMS:'民诉',subXS:'刑诉',subSJF:'商经法',subLLF:'理论法',subSGF:'三国法'};
+var SUBJ_KEY_ORDER=['MF','XF','MS','XS','SJF','XZF','SGF','LLF'];
+var SUBJ_ORDER=['民法','刑法','民诉','刑诉','商经法','行政法','三国法','理论法'];
 var T={1:'单项选择题',2:'多项选择题',3:'不定项选择题'};
 var WW={}; // wrong weights
 
@@ -1270,9 +1272,8 @@ function togSrc(type){
 (function(){
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
-  var subjKeyOrder=['MF','XF','MS','XS','SJF','XZF','SGF','LLF']; // 2列网格按行填充 → 左列：民法/民诉/商经法/三国法；右列：刑法/刑诉/行政法/理论法
   var h='';
-  subjKeyOrder.forEach(function(k){
+  SUBJ_KEY_ORDER.forEach(function(k){
     h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
     h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<div class="subj-row"><span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span><span class="subj-name">'+subMap[k]+'</span><span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span></div>';
@@ -2043,7 +2044,7 @@ function rEB(){
   });
 
   var allItems={};
-  var subjOrder=['民法','刑法','行政法','民诉','刑诉','商经法','理论法','三国法'];
+  var subjOrder=SUBJ_ORDER;
   var h='';
 
   subjOrder.forEach(function(subj){
@@ -2269,7 +2270,7 @@ function rP(){
 
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var CSUB={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
-  var subjOrder=['民法','刑法','行政法','民诉','刑诉','商经法','理论法','三国法'];
+  var subjOrder=SUBJ_ORDER;
   var subjTotals={},subjDone={},subjCorrect={};
   if(hasQ){
     Q.forEach(function(q){subjTotals[q.lawName]=(subjTotals[q.lawName]||0)+1});
@@ -2381,7 +2382,7 @@ function openErrSubj(){
       if(q){var kk=Object.keys(subMap).find(function(k){return subMap[k]===q.lawName});if(kk)counts[kk]=(counts[kk]||0)+1}
     });
     var h='';
-    Object.keys(subMap).forEach(function(k){
+    SUBJ_KEY_ORDER.forEach(function(k){
       var n=counts[k]||0;
       h+='<div class="subj-tag" id="etag'+k+'" onclick="this.classList.toggle(\'sel\')">';
       h+='<span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span>';
@@ -3066,7 +3067,7 @@ function renderProgressExtra(){
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
   var totals={};if(Q.length)Q.forEach(function(q){var k=Object.keys(subMap).find(function(k){return subMap[k]===q.lawName});if(k)totals[k]=(totals[k]||0)+1});
   var milestones=[];
-  Object.keys(subMap).forEach(function(k){
+  SUBJ_KEY_ORDER.forEach(function(k){
     var done=0;var dd=d.done||{};
     Object.keys(dd).forEach(function(id){if(dd[id]&&dd[id].law===subMap[k])done++});
     var tot=totals[k]||0;var p=tot?done/tot:0;
