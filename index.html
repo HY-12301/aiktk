@@ -977,7 +977,7 @@ function updateDmIcon(isDark){
 })()
 var DEEPSEEK_KEY=localStorage.getItem('deepseekKey')||'';
 var DEEPSEEK_URL='https://api.deepseek.com/v1/chat/completions';
-var DEEPSEEK_MODEL='deepseek-v4-pro';
+var DEEPSEEK_MODEL='deepseek-v4-flash';
 var sessionSubjects=[];
 var M={subMF:'民法',subXF:'刑法',subXZF:'行政法',subMS:'民诉',subXS:'刑诉',subSJF:'商经法',subLLF:'理论法',subSGF:'三国法'};
 var SUBJ_KEY_ORDER=['MF','XF','MS','XS','SJF','XZF','SGF','LLF'];
@@ -1788,7 +1788,7 @@ function callDeepSeek(q, did, ua){
   fetch(DEEPSEEK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:800})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:2000,thinking:{type:'disabled'}})
   }).then(function(r){
     return r.text().then(function(raw){
       var data={};
@@ -1853,7 +1853,7 @@ function sendChat(cid){
   fetch(DEEPSEEK_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false,thinking:{type:'disabled'}})
   }).then(function(r){return r.json()}).then(function(d){
     inp.disabled=false;
     var reply=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
@@ -1875,7 +1875,7 @@ function sendChat(cid){
     fetch(DEEPSEEK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-      body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false})
+      body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false,thinking:{type:'disabled'}})
     }).then(function(r){return r.json()}).then(function(d2){
       var reply=(d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||'';
       history.push({role:'user',content:msg});
@@ -2028,7 +2028,7 @@ function eQ(){
 
   fetch(DEEPSEEK_URL,{
     method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:summaryPrompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:summaryPrompt}],temperature:0.5,max_tokens:300,thinking:{type:'disabled'}})
   }).then(function(r){return r.json()}).then(function(d){
     var reply=d.choices&&d.choices[0]?d.choices[0].message.content:'';
     document.getElementById('sAdvice').innerHTML=reply?fmtReply(reply):advFallback(rt);
@@ -2903,7 +2903,7 @@ function endExam(){
     '请仅针对本次考试回复：1.本次成绩评估（合格/不合格及原因） 2.失分最严重的领域 3.考前冲刺的改进建议';
   fetch(DEEPSEEK_URL,{
     method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:examPrompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:examPrompt}],temperature:0.5,max_tokens:300,thinking:{type:'disabled'}})
   }).then(function(r){return r.json()}).then(function(d){
     var reply=d.choices&&d.choices[0]?d.choices[0].message.content:'';
     document.getElementById('sAdvice').innerHTML=reply?fmtReply(reply):'考试完成，建议针对性复习薄弱科目。';
@@ -3151,7 +3151,7 @@ function askCoach(){
   }
   var recentWrong=Object.keys(done).filter(function(id){return done[id]&&done[id].ok===false}).length;
   var prompt='你是法考辅导教练。学生今日备考，近期易错科目与次数：'+weak.map(function(w){return w+':'+(byLaw[w]||0)}).join('；')+'。累计错题数：'+recentWrong+'。\n请制定一份「今日学习计划」（150字内），包含：1.建议优先练习的科目 2.每科建议题量 3.一句鼓励。用中文分点列出。';
-  fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.6,max_tokens:300})})
+  fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.6,max_tokens:300,thinking:{type:'disabled'}})})
    .then(function(r){return r.json()}).then(function(dt){var reply=dt.choices&&dt.choices[0]?dt.choices[0].message.content:'';body.innerHTML='<b>AI 今日计划</b><br>'+fmtReply(reply||('优先练习：'+weak.join('、')));if(pr)pr.style.display='';})
    .catch(function(){body.innerHTML='<b>今日建议</b><br>优先练习：'+weak.join('、');if(pr)pr.style.display='';});
 }
