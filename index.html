@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <style>
 :root{
-  --bg:#f2ede3;--card:#fbfaf6;--card-raised:#ffffff;
+  --bg:#f2ede3;--bg-alt:#ebe6dc;--card:#fbfaf6;--card-raised:#ffffff;
   --text:#232120;--text-secondary:#5f5a52;--text-tertiary:#716b61;
   --primary:#2a5d8f;--primary-600:#214c75;--primary-soft:#e9eff6;
   --success:#2f9e6e;--success-600:#1f7a52;--success-soft:#e8f4ee;
@@ -25,10 +25,10 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{color-scheme:light}
-body{background:var(--bg);font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;color:var(--text);line-height:1.5}
+body{background:linear-gradient(135deg,var(--bg) 0%,var(--bg-alt) 48%,var(--bg) 100%);font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;color:var(--text);line-height:1.5}
 a{text-decoration:none;color:inherit}li{list-style:none}
 
-.toolbar{height:58px;background:rgba(251,250,246,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;z-index:99;border-bottom:1px solid var(--border-light)}
+.toolbar{height:58px;background:rgba(251,250,246,.56);backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);box-shadow:0 8px 24px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.52);display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;z-index:99;border-bottom:1px solid rgba(255,255,255,.58)}
 .toolbar .tabs{display:flex;gap:8px;background:var(--border-light);padding:4px;border-radius:99px}
 .toolbar .tabs a{font-size:14px;color:var(--text-secondary);padding:8px 18px;border-radius:99px;font-weight:500;transition:var(--transition);border-bottom:none}
 .toolbar .tabs a:hover{color:var(--text)}
@@ -103,7 +103,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .btn:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
 
 /* Quiz */
-.quiz-header{background:rgba(251,250,246,.64);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:var(--shadow);position:sticky;top:0;z-index:50;border:1px solid var(--border-light);border-top:none}
+.quiz-header{background:rgba(251,250,246,.52);backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:0 8px 24px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.46);position:sticky;top:0;z-index:50;border:1px solid rgba(255,255,255,.58);border-top:none}
 .quiz-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;min-width:0;overflow:hidden}
 .quiz-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}
 .quiz-progress{display:flex;align-items:baseline;gap:4px;flex-shrink:0}
@@ -229,7 +229,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .chat-send{padding:5px 14px;font-size:12px;flex-shrink:0}
 
 /* Bottom controls */
-.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:rgba(251,250,246,.64);padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:rgba(251,250,246,.52);padding:12px 16px;border-top:1px solid rgba(255,255,255,.58);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);box-shadow:0 -8px 24px rgba(35,33,32,.07),inset 0 1px 0 rgba(255,255,255,.42)}
 .quiz-counter{font-size:13px;color:var(--text-tertiary);display:flex;gap:20px}
 
 /* Summary */
@@ -273,16 +273,16 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .eb-topic-n{font-size:11px;color:var(--text-tertiary);font-weight:400}
 /* Dark mode — manual toggle */
 .dark, body.dark, html.dark{
-  --bg:#171a1e;--card:#20252b;--card-raised:#282e35;
+  --bg:#171a1e;--bg-alt:#1c2126;--card:#20252b;--card-raised:#282e35;
   --text:#efe9dc;--text-secondary:#b8b0a2;--text-tertiary:#8d8579;
   --primary-soft:#1d2933;--success-soft:#182d22;--danger-soft:#35201d;--warning-soft:#332818;
   --border:#46505a;--border-light:#39414a;
   background:#171a1e!important;color:#efe9dc!important
 }
 .dark,html.dark{color-scheme:dark}
-.dark html,.dark body{min-height:100dvh;background:#171a1e!important}
+.dark html,.dark body{min-height:100dvh;background:linear-gradient(135deg,#171a1e 0%,#1c2126 48%,#171a1e 100%)!important}
 .dark .page{background:transparent}
-.dark .toolbar{background:rgba(32,37,43,.92)!important;border-color:#46505a;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.dark .toolbar{background:rgba(32,37,43,.56)!important;border-color:rgba(174,187,198,.24);box-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08)}
 .dark #dmToggle{background:#39414a!important;border-color:#46505a!important;color:#b8b0a2}
 .dark [data-phase=learning]{background:#1d2933!important;color:#82a3bd!important}
 .dark [data-phase=relearning]{background:#332818!important;color:#d4a25f!important}
@@ -328,8 +328,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .eb-topic-h{background:#35201d;color:#dd7970}
 .dark .eb-name{color:#efe9dc}
 .dark .eb-detail-title{color:#efe9dc}
-.dark .bottom-controls{background:rgba(23,26,30,.64);border-color:#39414a}
-.dark .quiz-header{background:rgba(32,37,43,.64)!important;color:#efe9dc!important;border-color:#39414a}
+.dark .bottom-controls{background:rgba(23,26,30,.52);border-color:rgba(174,187,198,.24);box-shadow:0 -10px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)}
+.dark .quiz-header{background:rgba(32,37,43,.52)!important;color:#efe9dc!important;border-color:rgba(174,187,198,.24);box-shadow:0 10px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)}
 .dark .quiz-current{color:#fff!important}
 .dark .quiz-pill{background:#39414a}
 .dark .quiz-rate{color:#efe9dc!important}
@@ -579,17 +579,17 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .mk-chip:hover{border-color:var(--primary);color:var(--primary)}
 .mk-chip.on:hover{color:#fff}
 
-/* 全站轻玻璃表面：内容区保持实色，承载层统一半透明。 */
+/* 全站玻璃表面：降低遮罩不透明度，让底层灰阶和模糊真正可见。 */
 .home-card,.home-more,.result-card,.eb-wrap,.eb-card,.p-card,.p-trow,.p-detail,.p-ring-card,.modal-box,.smart-box,.loading-box,.goalbar{
-  background:rgba(251,250,246,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+  background:rgba(251,250,246,.54);backdrop-filter:blur(22px) saturate(1.06);-webkit-backdrop-filter:blur(22px) saturate(1.06);border-color:rgba(255,255,255,.62);box-shadow:0 10px 28px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.48)
 }
-.reco-card{background:rgba(233,239,246,.74);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.subj-tag,.mk-chip,.smart-btn,.settings-input,.chat-inp{background:rgba(251,250,246,.64)}
+.reco-card{background:rgba(233,239,246,.56);backdrop-filter:blur(22px) saturate(1.06);-webkit-backdrop-filter:blur(22px) saturate(1.06);box-shadow:0 10px 28px rgba(35,33,32,.07),inset 0 1px 0 rgba(255,255,255,.48)}
+.subj-tag,.mk-chip,.smart-btn,.settings-input,.chat-inp{background:rgba(251,250,246,.52);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(255,255,255,.58)}
 .modal-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.dark .toolbar{background:rgba(32,37,43,.72)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.dark .home-card,.dark .home-more,.dark .eb-wrap,.dark .eb-card,.dark .result-card,.dark .p-card,.dark .p-trow,.dark .p-detail,.dark .p-ring-card,.dark .modal-box,.dark .smart-box,.dark .loading-box,.dark .goalbar{background:rgba(32,37,43,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.dark .reco-card{background:rgba(29,41,51,.72)}
-.dark .subj-tag,.dark .mk-chip,.dark .smart-btn,.dark .settings-input,.dark .chat-inp{background:rgba(32,37,43,.64)}
+.dark .toolbar{background:rgba(32,37,43,.56)!important;backdrop-filter:blur(20px) saturate(1.05);-webkit-backdrop-filter:blur(20px) saturate(1.05)}
+.dark .home-card,.dark .home-more,.dark .eb-wrap,.dark .eb-card,.dark .result-card,.dark .p-card,.dark .p-trow,.dark .p-detail,.dark .p-ring-card,.dark .modal-box,.dark .smart-box,.dark .loading-box,.dark .goalbar{background:rgba(32,37,43,.52);backdrop-filter:blur(22px) saturate(1.05);-webkit-backdrop-filter:blur(22px) saturate(1.05);border-color:rgba(174,187,198,.22);box-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.07)}
+.dark .reco-card{background:rgba(29,41,51,.54);box-shadow:0 10px 28px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.07)}
+.dark .subj-tag,.dark .mk-chip,.dark .smart-btn,.dark .settings-input,.dark .chat-inp{background:rgba(32,37,43,.48);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(174,187,198,.2)}
 .dark .mk-chip.on,.dark .smart-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
 .dark .p-trow.sel{background:var(--primary-soft);border-color:var(--primary)}
 
@@ -1789,15 +1789,23 @@ function callDeepSeek(q, did, ua){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
     body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:300})
-  }).then(function(r){return r.json()}).then(function(data){
+  }).then(function(r){
+    return r.text().then(function(raw){
+      var data={};
+      try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error('接口返回格式异常（HTTP '+r.status+'）')}
+      if(!r.ok){
+        var apiMsg=data.error&&data.error.message||data.message||'';
+        throw new Error('HTTP '+r.status+(apiMsg?'：'+apiMsg:''));
+      }
+      return data;
+    });
+  }).then(function(data){
     var el=document.getElementById(did);
     if(!el)return;
-    var reply=data.choices&&data.choices[0]?data.choices[0].message.content:'';
-    if(reply){
-      el.innerHTML='<div class="ai-pre">'+fmtReply(reply)+'</div>';
-    } else {
-      el.innerHTML='<div class="ai-empty">DeepSeek 暂未返回结果</div>';
-    }
+    var reply=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
+    reply=typeof reply==='string'?reply:String(reply||'');
+    if(!reply.trim())throw new Error('接口返回内容为空');
+    el.innerHTML='<div class="ai-pre">'+fmtReply(reply)+'</div>';
     // Cache the generated explanation for this question.
     aiCache[String(q.id)]=el.innerHTML;
   }).catch(function(e){
