@@ -28,7 +28,7 @@ html{color-scheme:light}
 body{background:linear-gradient(135deg,var(--bg) 0%,var(--bg-alt) 48%,var(--bg) 100%);font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;color:var(--text);line-height:1.5}
 a{text-decoration:none;color:inherit}li{list-style:none}
 
-.toolbar{height:58px;background:rgba(251,250,246,.56);backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);box-shadow:0 8px 24px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.52);display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;z-index:99;border-bottom:1px solid rgba(255,255,255,.58)}
+.toolbar{height:58px;background:rgba(251,250,246,.42);backdrop-filter:blur(28px) saturate(1.12);-webkit-backdrop-filter:blur(28px) saturate(1.12);box-shadow:0 10px 30px rgba(35,33,32,.1),inset 0 1px 0 rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;z-index:99;border-bottom:1px solid rgba(255,255,255,.72)}
 .toolbar .tabs{display:flex;gap:8px;background:var(--border-light);padding:4px;border-radius:99px}
 .toolbar .tabs a{font-size:14px;color:var(--text-secondary);padding:8px 18px;border-radius:99px;font-weight:500;transition:var(--transition);border-bottom:none}
 .toolbar .tabs a:hover{color:var(--text)}
@@ -103,7 +103,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .btn:disabled{opacity:.45;cursor:default;transform:none;box-shadow:none}
 
 /* Quiz */
-.quiz-header{background:rgba(251,250,246,.52);backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:0 8px 24px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.46);position:sticky;top:0;z-index:50;border:1px solid rgba(255,255,255,.58);border-top:none}
+.quiz-header{background:rgba(251,250,246,.38);backdrop-filter:blur(28px) saturate(1.12);-webkit-backdrop-filter:blur(28px) saturate(1.12);border-radius:0 0 var(--radius) var(--radius);padding:10px 18px;box-shadow:0 10px 30px rgba(35,33,32,.1),inset 0 1px 0 rgba(255,255,255,.64);position:sticky;top:0;z-index:50;border:1px solid rgba(255,255,255,.7);border-top:none}
 .quiz-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;min-width:0;overflow:hidden}
 .quiz-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}
 .quiz-progress{display:flex;align-items:baseline;gap:4px;flex-shrink:0}
@@ -229,7 +229,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .chat-send{padding:5px 14px;font-size:12px;flex-shrink:0}
 
 /* Bottom controls */
-.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:rgba(251,250,246,.52);padding:12px 16px;border-top:1px solid rgba(255,255,255,.58);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);box-shadow:0 -8px 24px rgba(35,33,32,.07),inset 0 1px 0 rgba(255,255,255,.42)}
+.bottom-controls{position:fixed;bottom:0;left:0;right:0;background:rgba(251,250,246,.38);padding:12px 16px;border-top:1px solid rgba(255,255,255,.7);display:flex;justify-content:space-between;align-items:center;z-index:100;backdrop-filter:blur(28px) saturate(1.12);-webkit-backdrop-filter:blur(28px) saturate(1.12);box-shadow:0 -10px 30px rgba(35,33,32,.09),inset 0 1px 0 rgba(255,255,255,.58)}
 .quiz-counter{font-size:13px;color:var(--text-tertiary);display:flex;gap:20px}
 
 /* Summary */
@@ -282,7 +282,7 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark,html.dark{color-scheme:dark}
 .dark html,.dark body{min-height:100dvh;background:linear-gradient(135deg,#171a1e 0%,#1c2126 48%,#171a1e 100%)!important}
 .dark .page{background:transparent}
-.dark .toolbar{background:rgba(32,37,43,.56)!important;border-color:rgba(174,187,198,.24);box-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08)}
+.dark .toolbar{background:rgba(32,37,43,.4)!important;border-color:rgba(174,187,198,.3);box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
 .dark #dmToggle{background:#39414a!important;border-color:#46505a!important;color:#b8b0a2}
 .dark [data-phase=learning]{background:#1d2933!important;color:#82a3bd!important}
 .dark [data-phase=relearning]{background:#332818!important;color:#d4a25f!important}
@@ -328,8 +328,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .eb-topic-h{background:#35201d;color:#dd7970}
 .dark .eb-name{color:#efe9dc}
 .dark .eb-detail-title{color:#efe9dc}
-.dark .bottom-controls{background:rgba(23,26,30,.52);border-color:rgba(174,187,198,.24);box-shadow:0 -10px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)}
-.dark .quiz-header{background:rgba(32,37,43,.52)!important;color:#efe9dc!important;border-color:rgba(174,187,198,.24);box-shadow:0 10px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)}
+.dark .bottom-controls{background:rgba(23,26,30,.38);border-color:rgba(174,187,198,.3);box-shadow:0 -12px 32px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.08)}
+.dark .quiz-header{background:rgba(32,37,43,.38)!important;color:#efe9dc!important;border-color:rgba(174,187,198,.3);box-shadow:0 12px 32px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.08)}
 .dark .quiz-current{color:#fff!important}
 .dark .quiz-pill{background:#39414a}
 .dark .quiz-rate{color:#efe9dc!important}
@@ -581,15 +581,15 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 
 /* 全站玻璃表面：降低遮罩不透明度，让底层灰阶和模糊真正可见。 */
 .home-card,.home-more,.result-card,.eb-wrap,.eb-card,.p-card,.p-trow,.p-detail,.p-ring-card,.modal-box,.smart-box,.loading-box,.goalbar{
-  background:rgba(251,250,246,.54);backdrop-filter:blur(22px) saturate(1.06);-webkit-backdrop-filter:blur(22px) saturate(1.06);border-color:rgba(255,255,255,.62);box-shadow:0 10px 28px rgba(35,33,32,.08),inset 0 1px 0 rgba(255,255,255,.48)
+  background:rgba(251,250,246,.42);backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1);border-color:rgba(255,255,255,.72);box-shadow:0 12px 32px rgba(35,33,32,.1),inset 0 1px 0 rgba(255,255,255,.62)
 }
-.reco-card{background:rgba(233,239,246,.56);backdrop-filter:blur(22px) saturate(1.06);-webkit-backdrop-filter:blur(22px) saturate(1.06);box-shadow:0 10px 28px rgba(35,33,32,.07),inset 0 1px 0 rgba(255,255,255,.48)}
-.subj-tag,.mk-chip,.smart-btn,.settings-input,.chat-inp{background:rgba(251,250,246,.52);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(255,255,255,.58)}
+.reco-card{background:rgba(233,239,246,.44);backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1);box-shadow:0 12px 32px rgba(35,33,32,.09),inset 0 1px 0 rgba(255,255,255,.62)}
+.subj-tag,.mk-chip,.smart-btn,.settings-input,.chat-inp{background:rgba(251,250,246,.4);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,.68)}
 .modal-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.dark .toolbar{background:rgba(32,37,43,.56)!important;backdrop-filter:blur(20px) saturate(1.05);-webkit-backdrop-filter:blur(20px) saturate(1.05)}
-.dark .home-card,.dark .home-more,.dark .eb-wrap,.dark .eb-card,.dark .result-card,.dark .p-card,.dark .p-trow,.dark .p-detail,.dark .p-ring-card,.dark .modal-box,.dark .smart-box,.dark .loading-box,.dark .goalbar{background:rgba(32,37,43,.52);backdrop-filter:blur(22px) saturate(1.05);-webkit-backdrop-filter:blur(22px) saturate(1.05);border-color:rgba(174,187,198,.22);box-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.07)}
-.dark .reco-card{background:rgba(29,41,51,.54);box-shadow:0 10px 28px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.07)}
-.dark .subj-tag,.dark .mk-chip,.dark .smart-btn,.dark .settings-input,.dark .chat-inp{background:rgba(32,37,43,.48);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(174,187,198,.2)}
+.dark .toolbar{background:rgba(32,37,43,.4)!important;backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1)}
+.dark .home-card,.dark .home-more,.dark .eb-wrap,.dark .eb-card,.dark .result-card,.dark .p-card,.dark .p-trow,.dark .p-detail,.dark .p-ring-card,.dark .modal-box,.dark .smart-box,.dark .loading-box,.dark .goalbar{background:rgba(32,37,43,.38);backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1);border-color:rgba(174,187,198,.28);box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.09)}
+.dark .reco-card{background:rgba(29,41,51,.4);box-shadow:0 12px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.09)}
+.dark .subj-tag,.dark .mk-chip,.dark .smart-btn,.dark .settings-input,.dark .chat-inp{background:rgba(32,37,43,.34);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(174,187,198,.26)}
 .dark .mk-chip.on,.dark .smart-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
 .dark .p-trow.sel{background:var(--primary-soft);border-color:var(--primary)}
 
@@ -977,7 +977,7 @@ function updateDmIcon(isDark){
 })()
 var DEEPSEEK_KEY=localStorage.getItem('deepseekKey')||'';
 var DEEPSEEK_URL='https://api.deepseek.com/v1/chat/completions';
-// DEEPSEEK_MOD not used; deepseek-chat → flash, deepseek-v4-pro → chat
+var DEEPSEEK_MODEL='deepseek-v4-pro';
 var sessionSubjects=[];
 var M={subMF:'民法',subXF:'刑法',subXZF:'行政法',subMS:'民诉',subXS:'刑诉',subSJF:'商经法',subLLF:'理论法',subSGF:'三国法'};
 var SUBJ_KEY_ORDER=['MF','XF','MS','XS','SJF','XZF','SGF','LLF'];
@@ -1788,7 +1788,7 @@ function callDeepSeek(q, did, ua){
   fetch(DEEPSEEK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:300})
   }).then(function(r){
     return r.text().then(function(raw){
       var data={};
@@ -1850,11 +1850,11 @@ function sendChat(cid){
   fetch(DEEPSEEK_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-v4-pro',messages:messages,temperature:0.5,max_tokens:800,stream:false})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false})
   }).then(function(r){return r.json()}).then(function(d){
     inp.disabled=false;
     var reply=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
-    // V4 Pro 空回复→降级 chat 重试
+    // V4 Pro 空回复→使用同一模型重试
     if(!reply){throw new Error('EMPTY')}
     if(!history.length){
       history.push({role:'system',content:'你是经验丰富的法考辅导老师。讲解要精准、简洁、一针见血；发现学生反复困惑时，换更直观的角度并给出可执行的识别方法。'});
@@ -1867,12 +1867,12 @@ function sendChat(cid){
     msgsEl.innerHTML+='<div class="chat-msg ai">'+fmtReply(reply||'暂无回复')+'</div>';
     msgsEl.scrollTop=msgsEl.scrollHeight;
   }).catch(function(e){
-    // Pro 空/失败 → 降级 chat 重试
+    // V4 Pro 空/失败 → 使用同一模型重试
     inp.disabled=false;
     fetch(DEEPSEEK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-      body:JSON.stringify({model:'deepseek-chat',messages:messages,temperature:0.5,max_tokens:800,stream:false})
+      body:JSON.stringify({model:DEEPSEEK_MODEL,messages:messages,temperature:0.5,max_tokens:800,stream:false})
     }).then(function(r){return r.json()}).then(function(d2){
       var reply=(d2.choices&&d2.choices[0]&&d2.choices[0].message&&d2.choices[0].message.content)||'';
       history.push({role:'user',content:msg});
@@ -2025,7 +2025,7 @@ function eQ(){
 
   fetch(DEEPSEEK_URL,{
     method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:summaryPrompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:summaryPrompt}],temperature:0.5,max_tokens:300})
   }).then(function(r){return r.json()}).then(function(d){
     var reply=d.choices&&d.choices[0]?d.choices[0].message.content:'';
     document.getElementById('sAdvice').innerHTML=reply?fmtReply(reply):advFallback(rt);
@@ -2149,7 +2149,7 @@ function openSyncSettings(){
   if(sid){h+='<p class="settings-note" style="color:var(--success-600)">已关联云端数据</p>'}
   else if(t){h+='<p class="settings-note" style="color:var(--warning)">已设置 Token，首次刷题后会自动创建云端数据</p>'}
   var dk=localStorage.getItem('deepseekKey')||'';
-  h+='<div class="settings-field" style="border-top:1px solid var(--border-light);padding-top:10px"><span class="settings-label">DeepSeek API Key</span><div class="secret-row"><input id="deepseekKeyInput" class="settings-input" type="password" autocomplete="off" value="'+esc(dk)+'" placeholder="sk-..."><button class="secret-toggle" type="button" onclick="toggleSecretInput(\'deepseekKeyInput\',this)">显示</button></div><span class="settings-note">用于题目讲解、追问和学习建议。<a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--primary)">获取 Key</a>。追问使用 V4 Pro，其他功能使用 deepseek-chat。</span></div>';
+  h+='<div class="settings-field" style="border-top:1px solid var(--border-light);padding-top:10px"><span class="settings-label">DeepSeek API Key</span><div class="secret-row"><input id="deepseekKeyInput" class="settings-input" type="password" autocomplete="off" value="'+esc(dk)+'" placeholder="sk-..."><button class="secret-toggle" type="button" onclick="toggleSecretInput(\'deepseekKeyInput\',this)">显示</button></div><span class="settings-note">用于题目讲解、追问和学习建议。<a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="color:var(--primary)">获取 Key</a>。所有 AI 功能统一使用 V4 Pro。</span></div>';
   h+='<div class="settings-security">密钥仅保存在当前浏览器，并会直接发送给对应服务。请只在个人设备使用，不要把 Token 或 API Key 分享给他人。</div>';
   h+='<div class="settings-tools"><button class="btn btn-gray" onclick="exportData()" style="padding:7px 12px;font-size:11px">导出数据</button><button class="btn btn-gray" onclick="importData()" style="padding:7px 12px;font-size:11px">导入数据</button></div>';
   h+='<div class="settings-actions"><button class="btn btn-gray" onclick="closeDetail()" style="padding:7px 14px;font-size:12px">取消</button><button class="btn btn-blue" onclick="saveSyncToken()" style="padding:7px 14px;font-size:12px">保存</button></div>';
@@ -2890,7 +2890,7 @@ function endExam(){
     '请仅针对本次考试回复：1.本次成绩评估（合格/不合格及原因） 2.失分最严重的领域 3.考前冲刺的改进建议';
   fetch(DEEPSEEK_URL,{
     method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:examPrompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:examPrompt}],temperature:0.5,max_tokens:300})
   }).then(function(r){return r.json()}).then(function(d){
     var reply=d.choices&&d.choices[0]?d.choices[0].message.content:'';
     document.getElementById('sAdvice').innerHTML=reply?fmtReply(reply):'考试完成，建议针对性复习薄弱科目。';
@@ -3138,7 +3138,7 @@ function askCoach(){
   }
   var recentWrong=Object.keys(done).filter(function(id){return done[id]&&done[id].ok===false}).length;
   var prompt='你是法考辅导教练。学生今日备考，近期易错科目与次数：'+weak.map(function(w){return w+':'+(byLaw[w]||0)}).join('；')+'。累计错题数：'+recentWrong+'。\n请制定一份「今日学习计划」（150字内），包含：1.建议优先练习的科目 2.每科建议题量 3.一句鼓励。用中文分点列出。';
-  fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],temperature:0.6,max_tokens:300})})
+  fetch(DEEPSEEK_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.6,max_tokens:300})})
    .then(function(r){return r.json()}).then(function(dt){var reply=dt.choices&&dt.choices[0]?dt.choices[0].message.content:'';body.innerHTML='<b>AI 今日计划</b><br>'+fmtReply(reply||('优先练习：'+weak.join('、')));if(pr)pr.style.display='';})
    .catch(function(){body.innerHTML='<b>今日建议</b><br>优先练习：'+weak.join('、');if(pr)pr.style.display='';});
 }
