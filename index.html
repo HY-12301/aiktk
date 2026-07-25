@@ -1788,7 +1788,7 @@ function callDeepSeek(q, did, ua){
   fetch(DEEPSEEK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+DEEPSEEK_KEY},
-    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:300})
+    body:JSON.stringify({model:DEEPSEEK_MODEL,messages:[{role:'user',content:prompt}],temperature:0.5,max_tokens:800})
   }).then(function(r){
     return r.text().then(function(raw){
       var data={};
@@ -1802,9 +1802,12 @@ function callDeepSeek(q, did, ua){
   }).then(function(data){
     var el=document.getElementById(did);
     if(!el)return;
-    var reply=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
-    reply=typeof reply==='string'?reply:String(reply||'');
-    if(!reply.trim())throw new Error('接口返回内容为空');
+    var choice=data.choices&&data.choices[0];
+    var reply=deepSeekReply(data);
+    if(!reply.trim()){
+      var reason=choice&&choice.finish_reason;
+      throw new Error(reason==='length'?'模型输出被截断，请重试（max_tokens不足）':'接口返回内容为空'+(reason?'（finish_reason：'+reason+'）':''));
+    }
     el.innerHTML='<div class="ai-pre">'+fmtReply(reply)+'</div>';
     // Cache the generated explanation for this question.
     aiCache[String(q.id)]=el.innerHTML;
@@ -2364,6 +2367,16 @@ function togglePDetail(kk){
 function esc(s){if(!s)return'';s=String(s);return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 // Format DeepSeek reply: convert **bold** to <b>, add line/paragraph breaks
+function deepSeekReply(data){
+  var msg=data&&data.choices&&data.choices[0]&&data.choices[0].message;
+  if(!msg)return'';
+  var content=msg.content;
+  if(Array.isArray(content)){
+    content=content.map(function(x){return typeof x==='string'?x:(x&&x.text)||''}).join('');
+  }
+  return typeof content==='string'?content:String(content||'');
+}
+
 function fmtReply(s){
   if(!s)return'';
   s=esc(String(s));
