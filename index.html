@@ -425,8 +425,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .p-tlabel{font-size:10px;color:var(--text-tertiary);margin-bottom:3px}
 .p-tbar{display:flex;height:18px;border-radius:99px;overflow:hidden;gap:2px}
 .p-tbar .seg{transition:width .3s}
-.p-tbar .seg.green{background:var(--success)}
-.p-tbar .seg.red{background:var(--danger)}
+.p-tbar .seg.green{background:var(--success);opacity:.72}
+.p-tbar .seg.red{background:var(--danger);opacity:.72}
 .p-tbar .seg.gray{background:var(--border)}
 .p-detail{display:none;margin-top:12px;padding:16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border-light);box-shadow:var(--shadow-sm)}
 .p-detail.show{display:block}
@@ -817,8 +817,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 <div class="page" id="pageSummary">
   <div class="result-card"><h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-6"/></svg> 本次刷题总结</h3>
     <div class="stat-row"><span class="lbl">做题总数</span><span class="val" id="sTotal">0</span></div>
-    <div class="stat-row"><span class="lbl">正确</span><span class="val" style="color:#10b981" id="sOk">0</span></div>
-    <div class="stat-row"><span class="lbl">错误</span><span class="val" style="color:#ef4444" id="sBad">0</span></div>
+    <div class="stat-row"><span class="lbl">正确</span><span class="val" style="color:#2f9e6e" id="sOk">0</span></div>
+    <div class="stat-row"><span class="lbl">错误</span><span class="val" style="color:#d8493f" id="sBad">0</span></div>
     <div class="stat-row"><span class="lbl">正确率</span><span class="val" id="sRate">0%</span></div>
   </div>
   <div class="result-card"><h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 易错知识点 Top10</h3><div id="sTopics"><p class="empty-state">暂无数据</p></div></div>
@@ -1291,7 +1291,7 @@ function setSyncBadge(icon,text){
 
 function mergeArr(a,b,key){var m={};b.forEach(function(x){m[x[key]]=x});a.forEach(function(x){m[x[key]]=x});return Object.values(m);}
 function mergeDays(a,b){var m={};(a||[]).concat(b||[]).forEach(function(e){var d=(e.date||'').substring(0,10);if(!m[d])m[d]={date:e.date,t:0,k:0,b:0};m[d].t+=e.t||0;m[d].k+=e.k||0;m[d].b+=(e.b||0)});return Object.keys(m).map(function(d){return m[d]})}
-function showLoadError(){var l=document.getElementById('loader');if(!l)return;l.classList.remove('hidden');l.innerHTML='<div style="text-align:center;padding:24px"><p style="margin-bottom:10px;color:#ef4444;font-size:15px">题库加载失败</p><p style="margin-bottom:16px;color:#888;font-size:13px">可能因离线或网络异常</p><button onclick="location.reload()" style="padding:8px 22px;border:none;border-radius:8px;background:#2a5d8f;color:#fff;font-size:14px;cursor:pointer">重试</button></div>'}
+function showLoadError(){var l=document.getElementById('loader');if(!l)return;l.classList.remove('hidden');l.innerHTML='<div style="text-align:center;padding:24px"><p style="margin-bottom:10px;color:#d8493f;font-size:15px">题库加载失败</p><p style="margin-bottom:16px;color:#888;font-size:13px">可能因离线或网络异常</p><button onclick="location.reload()" style="padding:8px 22px;border:none;border-radius:8px;background:#2a5d8f;color:#fff;font-size:14px;cursor:pointer">重试</button></div>'}
 function mergeObj(a,b){var m={};for(var k in b)m[k]=b[k];for(var k in a)m[k]=a[k];return m;}
 
 // Source toggle
@@ -1903,7 +1903,7 @@ function sendChat(cid){
       msgsEl.scrollTop=msgsEl.scrollHeight;
     }).catch(function(){
       var lel=document.getElementById(cid+'-loading');if(lel)lel.remove();
-      msgsEl.innerHTML+='<div class="chat-msg ai" style="color:#dc2626">发送失败，请重试</div>';
+      msgsEl.innerHTML+='<div class="chat-msg ai" style="color:#d8493f">发送失败，请重试</div>';
     });
   });
 }
@@ -2266,7 +2266,7 @@ function rP(){
     '<text x="60" y="76" text-anchor="middle" font-size="11" fill="var(--text-tertiary)">整体进度</text></svg>'+
     '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+doneCount.toLocaleString()+'</span><span class="p-ring-lbl">已做</span></div>'+
     '<div class="p-ring-item"><span class="p-ring-num">'+latestCorrectCount.toLocaleString()+'</span><span class="p-ring-lbl">答对</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(doneCount>0?(latestCorrectCount/doneCount>=0.6?'#10b981':latestCorrectCount/doneCount>=0.4?'#ff9800':'#ef4444'):'var(--text-tertiary)')+'">'+ratePct+'</span><span class="p-ring-lbl">当前正确率</span></div>'+
+    '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(doneCount>0?(latestCorrectCount/doneCount>=0.6?'#2f9e6e':latestCorrectCount/doneCount>=0.4?'#dd8a2b':'#d8493f'):'var(--text-tertiary)')+'">'+ratePct+'</span><span class="p-ring-lbl">当前正确率</span></div>'+
     '<div class="p-ring-item"><span class="p-ring-num" style="color:#2a5d8f">'+todayNew+'</span><span class="p-ring-lbl">新学</span></div></div></div>';
   document.getElementById('pMetrics').innerHTML=topHTML;
   // 近7天折线图
@@ -2352,7 +2352,7 @@ function rP(){
     h+='<div class="seg red" style="width:'+(sj.sw/totalQ*100)+'%"></div>';
     h+='<div class="seg gray" style="width:'+((totalQ-sj.sc-sj.sw)/totalQ*100)+'%"></div>';
     h+='</div></div>';
-    h+='<span class="p-trate" style="color:'+(sj.cr>=70?'#059669':sj.cr>=50?'#ff9800':'#dc2626')+'">'+sj.cr+'%</span>';
+    h+='<span class="p-trate" style="color:'+(sj.cr>=70?'#2f9e6e':sj.cr>=50?'#dd8a2b':'#d8493f')+'">'+sj.cr+'%</span>';
     h+='</div>';
   });
   document.getElementById('pGrid').innerHTML=h;
@@ -2373,10 +2373,10 @@ function togglePDetail(kk){
   var subjToday=todayNewStudy(sj.name);
   var chunks=[
     {n:subjToday,l:'新学',c:'#2a5d8f'},
-    {n:sj.wrong,l:'易错',c:'#dc2626'},
+    {n:sj.wrong,l:'易错',c:'#d8493f'},
     {n:sj.marked,l:'标记',c:'#d97706'},
     {n:sj.due,l:'复习',c:'#4f46e5'},
-    {n:sj.mastered,l:'熟练',c:'#059669'}
+    {n:sj.mastered,l:'熟练',c:'#2f9e6e'}
   ];
   var memHTML='<div class="p-dmem">'+chunks.map(function(x){
     return '<div class="mchunk" style="background:'+x.c+'15;border:1px solid '+x.c+'50"><div class="mn" style="color:'+x.c+'">'+x.n+'</div><div class="ml">'+x.l+'</div></div>';
@@ -2886,7 +2886,7 @@ function endExam(){
   document.getElementById('sRate').textContent=rate+'%';
 
   var passHtml='<div style="text-align:center;padding:20px;margin-bottom:16px;border-radius:10px;background:'+(pass?'#e8f5e9':'#ffebee')+'">';
-  passHtml+='<div style="font-size:28px;font-weight:bold;color:'+(pass?'#059669':'#dc2626')+'">'+(pass?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/><path d="M4 22h16"/><path d="M10 22V8h4v14"/><path d="M8 8h8"/></svg> 合格':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 不合格')+'</div>';
+  passHtml+='<div style="font-size:28px;font-weight:bold;color:'+(pass?'#2f9e6e':'#d8493f')+'">'+(pass?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/><path d="M4 22h16"/><path d="M10 22V8h4v14"/><path d="M8 8h8"/></svg> 合格':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 不合格')+'</div>';
   passHtml+='<div style="font-size:16px;color:#666;margin-top:4px">得分 '+score+' / '+maxScore+'（合格线90分）</div>';
   passHtml+='</div>';
 
