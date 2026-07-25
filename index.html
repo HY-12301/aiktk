@@ -997,6 +997,22 @@ function loadState(){var d=LS();d.w=d.w||[];d.t=d.t||0;d.k=d.k||0;d.s=d.s||0;d.h
 function SS(d){STATE=d;try{localStorage.setItem('s',JSON.stringify(d))}catch(e){if(!SS._q){SS._q=true;console.error('本地存储写入失败(可能已满):',e);setTimeout(function(){alert('⚠️ 本地存储空间已满，部分学习进度可能无法保存。建议导出备份或清理浏览器数据。')},400)}}}
 function GS(){if(!STATE)STATE=loadState();return STATE}
 
+// Active wrong questions are keyed by ID so duplicate or stale records cannot inflate counts.
+function activeWrongMap(d){
+  var latest={},active={};
+  (d&&d.w||[]).forEach(function(w){
+    var id=String(w.id),stamp=Date.parse(w.updatedAt||w.time||'')||0;
+    if(!latest[id]||stamp>=latest[id].stamp)latest[id]={item:w,stamp:stamp};
+  });
+  Object.keys(latest).forEach(function(id){
+    if((Number(latest[id].item.streak)||0)<3)active[id]=latest[id].item;
+  });
+  return active;
+}
+function activeWrongList(d){
+  var m=activeWrongMap(d);return Object.keys(m).map(function(id){return m[id]});
+}
+
 function geM(qid){var d=GS();return d.mem[String(qid)]||null}
 function seM(qid,s){
   // Auto-cap stale step indices
@@ -1522,15 +1538,13 @@ function doS(s,z,m,sessionSize){
 
   // === 四类出题池：新题、错题、标记题、已做题 ===
   var nowT=new Date().getTime();
-  var wrongIds={};(state.w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
+  var wrongMap=activeWrongMap(state);
   var flagIds=state.flags||{};
   var bucket={unseen:[],wrong:[],marked:[],seen:[]};
   pool.forEach(function(q){
     var id=String(q.id),done=doneMap[id],mem=geM(q.id);
     if(!mem&&!done&&!firstSeenMap[id]){bucket.unseen.push(q);return;}
-    var wrongHistory=!!(mem&&mem.totalWrong>0)||!!wrongIds[id];
-    var consecutiveCorrect=mem?mem.consecutiveCorrect||0:0;
-    if((done&&done.ok===false)||(wrongHistory&&consecutiveCorrect<3)){bucket.wrong.push(q);return;}
+    if(wrongMap[id]){bucket.wrong.push(q);return;}
     if(flagIds[id]){bucket.marked.push(q);return;}
     bucket.seen.push(q);
   });
@@ -1615,12 +1629,11 @@ function syncQuizButtons(isSubmitted){
 
 function quizPoolCategory(q){
   var d=GS(),id=String(q.id),mem=geM(q.id),done=(d.done||{})[id];
+  var wrong=activeWrongMap(d)[id];
+  if(wrong)return'wrong'+Math.max(0,Math.min(2,Number(wrong.streak)||0));
   var mastered=mem&&mem.ef>=2.5&&mem.interval>=30&&mem.reps>=3;
   if(mastered)return'mastered';
   if(!mem&&!done&&!(d.firstSeen&&d.firstSeen[id]))return'new';
-  var wrongHistory=!!(mem&&mem.totalWrong>0)||(d.w||[]).some(function(w){return String(w.id)===id});
-  var score=mem?mem.consecutiveCorrect||0:0;
-  if((done&&done.ok===false)||(wrongHistory&&score<3))return'wrong'+Math.max(0,Math.min(2,score));
   if(d.flags&&d.flags[id])return'marked';
   return'seen';
 }
@@ -2054,7 +2067,8 @@ function eQ(){
 var EB_FLAG_ONLY=false;
 function toggleEbFlag(){EB_FLAG_ONLY=!EB_FLAG_ONLY;var b=document.getElementById('ebFlagFilter');if(b)b.classList.toggle('on',EB_FLAG_ONLY);rEB();}
 function rEB(){
-  var d=GS(),w=(d.w||[]).filter(function(e){return (e.streak||0)<3});
+  var d=GS(),qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
+  var w=activeWrongList(d).filter(function(e){return !!qById[String(e.id)]});
   if(EB_FLAG_ONLY){w=w.filter(function(e){return d.flags&&d.flags[String(e.id)]});}
   document.getElementById('ebTotal').textContent=w.length+' 题';
   if(!w.length){document.getElementById('ebGrid').innerHTML='<div class="eb-empty">'+(EB_FLAG_ONLY?'没有标记的题目':'暂无错题，继续保持！')+'</div>';return}
@@ -2062,7 +2076,6 @@ function rEB(){
   // Group by subject then by topic (fast: build id→q map once)
   var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
   var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
-  var qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
   var bySubject={};
   w.forEach(function(err){
     var q=qById[String(err.id)];if(!q)return;
@@ -2222,7 +2235,7 @@ function rP(){
   // 优先从 Q 取题库数据，未加载时用硬编码回退
   var hasQ=Q&&Q.length>0;
   var totalAvail=hasQ?Q.length:17374;
-  var wrongIds={};(d.w||[]).forEach(function(e){wrongIds[String(e.id)]=1;});
+  var wrongMap=activeWrongMap(d);
   var flagIds=d.flags||{},subjCats={};
   function getSubjCat(law){
     if(!subjCats[law])subjCats[law]={wrong:0,marked:0,due:0,mastered:0};
@@ -2231,11 +2244,9 @@ function rP(){
   Q.forEach(function(q){
     var id=String(q.id),st=memData[id],done=doneIds[id],cat=getSubjCat(q.lawName);
     var mastered=st&&st.ef>=2.5&&st.interval>=30&&st.reps>=3;
-    var wrongHistory=!!(st&&st.totalWrong>0)||!!wrongIds[id];
-    var consecutiveCorrect=st?st.consecutiveCorrect||0:0;
-    var activeWrong=!mastered&&((done&&done.ok===false)||(wrongHistory&&consecutiveCorrect<3));
-    if(mastered){cat.mastered++;return;}
+    var activeWrong=!!wrongMap[id];
     if(activeWrong){cat.wrong++;}
+    else if(mastered){cat.mastered++;return;}
     else if(flagIds[id]){cat.marked++;}
     else{return;}
     if(st&&st.nextReview&&new Date(st.nextReview).getTime()<=nowT)cat.due++;
@@ -2423,7 +2434,7 @@ function openErrSubj(){
     var subMap={MF:'民法',XF:'刑法',XZF:'行政法',MS:'民诉',XS:'刑诉',SJF:'商经法',LLF:'理论法',SGF:'三国法'};
     var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
     // 统计当前主动错题池，不再按旧的 SM-2 relearning 阶段统计。
-    var wrong=(GS().w||[]).filter(function(e){return (e.streak||0)<3}),counts={},qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
+    var wrong=activeWrongList(GS()),counts={},qById={};Q.forEach(function(qq){qById[String(qq.id)]=qq});
     wrong.forEach(function(err){
       var q=qById[String(err.id)];
       if(q){var kk=Object.keys(subMap).find(function(k){return subMap[k]===q.lawName});if(kk)counts[kk]=(counts[kk]||0)+1}
@@ -2452,7 +2463,7 @@ function startErrQuiz(){
   });
   closeErrSubj();
   // 错题页是主动错题池的手动入口，不受 nextReview 是否到期限制。
-  var wrong=(GS().w||[]).filter(function(e){return (e.streak||0)<3}),relearnIds=wrong.map(function(e){return String(e.id)});
+  var wrong=activeWrongList(GS()),relearnIds=wrong.map(function(e){return String(e.id)});
   if(subs.length>0){
     relearnIds=relearnIds.filter(function(id){
       var q=Q.find(function(qq){return String(qq.id)===id});
