@@ -267,6 +267,9 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .eb-item:hover{background:var(--bg)}
 .eb-item .eb-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
 .eb-item .eb-ans{color:var(--text-secondary);font-size:11px;white-space:nowrap;flex-shrink:0}
+.eb-progress{font-size:10px;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;background:var(--warning-soft);color:var(--warning)}
+.eb-progress.p0{background:var(--danger-soft);color:var(--danger)}
+.eb-progress.p2{background:var(--success-soft);color:var(--success-600)}
 .eb-item .eb-item-date{color:var(--text-tertiary);font-size:10px;white-space:nowrap;flex-shrink:0}
 .eb-topic{margin-bottom:8px}
 .eb-topic-h{font-size:12px;font-weight:600;color:var(--danger-600);padding:4px 8px;border-radius:var(--radius-sm);background:var(--danger-soft);cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
@@ -1634,11 +1637,11 @@ function qR(){
   // Status tag follows the actual question pool, not the internal SM-2 phase.
   var category=quizPoolCategory(q),labels={
     new:{text:'新题',phase:'new'},
-    relearning:{text:'重学',phase:'relearning'},
-    wrong:{text:'错题巩固',phase:'wrong'},
+    relearning:{text:'再练',phase:'relearning'},
+    wrong:{text:'易错',phase:'wrong'},
     marked:{text:'标记',phase:'marked'},
     seen:{text:'已做',phase:'seen'},
-    mastered:{text:'已掌握',phase:'mastered'}
+    mastered:{text:'熟练',phase:'mastered'}
   },tag=labels[category]||labels.seen;
   h+='<span data-phase="'+tag.phase+'">'+tag.text+'</span>';
   var dF=GS();var flagged=!!(dF.flags&&dF.flags[String(q.id)]);
@@ -2099,6 +2102,11 @@ function rEB(){
   document.getElementById('ebGrid')._data=allItems;
 }
 
+function errorProgressLabel(score){
+  score=Math.max(0,Math.min(2,Number(score)||0));
+  return score===0?'待练':score===1?'渐稳':'较稳';
+}
+
 function escQ(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;')}
 
 function openEbDetail(subj){
@@ -2119,6 +2127,8 @@ function openEbDetail(subj){
       h+='<div class="eb-item" onclick="sd('+q.id+')">';
       h+='<span class="eb-txt">'+esc((q.content||'').substring(0,60))+'</span>';
       h+='<span class="eb-ans">答：'+esc(q.correctAnswer||'')+'</span>';
+      var progress=Math.max(0,Math.min(2,Number(item.err.streak)||0));
+      h+='<span class="eb-progress p'+progress+'">'+errorProgressLabel(progress)+'</span>';
       h+='<span class="eb-flag">'+(fl||'')+(nt?'<br><span class="nt">'+nt+'</span>':'')+'</span>';
       h+='<span class="eb-item-date">'+dt.toLocaleDateString('zh-CN')+'</span>';
       h+='</div>';
@@ -2242,10 +2252,10 @@ function rP(){
     ' transform="rotate(-90 60 60)"/>'+
     '<text x="60" y="56" text-anchor="middle" font-size="22" font-weight="600" fill="var(--text)">'+(overallPct!==null?overallPct+'%':'--')+'</text>'+
     '<text x="60" y="76" text-anchor="middle" font-size="11" fill="var(--text-tertiary)">整体进度</text></svg>'+
-    '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+doneCount.toLocaleString()+'</span><span class="p-ring-lbl">已做题</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num">'+latestCorrectCount.toLocaleString()+'</span><span class="p-ring-lbl">答对题</span></div>'+
+    '<div class="p-ring-stats"><div class="p-ring-item"><span class="p-ring-num">'+doneCount.toLocaleString()+'</span><span class="p-ring-lbl">已做</span></div>'+
+    '<div class="p-ring-item"><span class="p-ring-num">'+latestCorrectCount.toLocaleString()+'</span><span class="p-ring-lbl">答对</span></div>'+
     '<div class="p-ring-item"><span class="p-ring-num" style="color:'+(doneCount>0?(latestCorrectCount/doneCount>=0.6?'#10b981':latestCorrectCount/doneCount>=0.4?'#ff9800':'#ef4444'):'var(--text-tertiary)')+'">'+ratePct+'</span><span class="p-ring-lbl">当前正确率</span></div>'+
-    '<div class="p-ring-item"><span class="p-ring-num" style="color:#2a5d8f">'+todayNew+'</span><span class="p-ring-lbl">今日新学</span></div></div></div>';
+    '<div class="p-ring-item"><span class="p-ring-num" style="color:#2a5d8f">'+todayNew+'</span><span class="p-ring-lbl">新学</span></div></div></div>';
   document.getElementById('pMetrics').innerHTML=topHTML;
   // 近7天折线图
   var dayRates={};
@@ -2350,11 +2360,11 @@ function togglePDetail(kk){
   el.dataset.open=kk;
   var subjToday=todayNewStudy(sj.name);
   var chunks=[
-    {n:subjToday,l:'今日新学',c:'#2a5d8f'},
-    {n:sj.wrong,l:'错题池',c:'#dc2626'},
-    {n:sj.marked,l:'标记题',c:'#d97706'},
-    {n:sj.due,l:'待复习',c:'#4f46e5'},
-    {n:sj.mastered,l:'已掌握',c:'#059669'}
+    {n:subjToday,l:'新学',c:'#2a5d8f'},
+    {n:sj.wrong,l:'易错',c:'#dc2626'},
+    {n:sj.marked,l:'标记',c:'#d97706'},
+    {n:sj.due,l:'复习',c:'#4f46e5'},
+    {n:sj.mastered,l:'熟练',c:'#059669'}
   ];
   var memHTML='<div class="p-dmem">'+chunks.map(function(x){
     return '<div class="mchunk" style="background:'+x.c+'15;border:1px solid '+x.c+'50"><div class="mn" style="color:'+x.c+'">'+x.n+'</div><div class="ml">'+x.l+'</div></div>';
