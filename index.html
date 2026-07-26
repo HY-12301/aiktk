@@ -93,6 +93,12 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .sp-zt i,.sp-mc i{font-style:normal;color:var(--text-tertiary);margin:0 1px;font-weight:400}
 .sp-zt span,.sp-mc span{font-weight:400;font-size:10px}
 .subj-num{font-size:10px;color:var(--text-tertiary);text-align:right}
+/* Topic chips */
+.topic-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.topic-chip{padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;border:0.5px solid var(--border-light);color:var(--text-secondary);transition:var(--transition);user-select:none;white-space:nowrap}
+.topic-chip.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:500}
+.topic-chip:hover{border-color:var(--primary)}
+.topic-toggle{cursor:pointer;user-select:none}
 .btn-row{display:flex;gap:10px}
 .btn{padding:9px 22px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:600;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
@@ -738,6 +744,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
       <input type="checkbox" id="srcMC" style="display:none">
       <div class="subj-tags" id="subjTags">
       </div>
+      <div class="topic-toggle" id="topicToggle" onclick="togTopics()" style="display:none;margin-top:6px;font-size:11px;color:var(--text-secondary);cursor:pointer;padding:4px 0"><span id="topicArrow">▶</span> 按专题筛选 <span id="topicCount" style="color:var(--text-tertiary)"></span></div>
+      <div class="topic-grid" id="topicGrid" style="display:none"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn btn-gray" onclick="selAll(true)" style="flex:1;font-size:11px">全选</button>
         <button class="btn btn-gray" onclick="selAll(false)" style="flex:1;font-size:11px">清空</button>
@@ -1358,11 +1366,35 @@ function togSrc(type){
     h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<div class="subj-row"><span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span><span class="subj-name">'+subMap[k]+'</span><span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span></div>';
     h+='<div class="subj-row"><span class="sp-mc"><b id="mcD'+k+'">0</b><i>/</i><span id="mcT'+k+'">—</span></span></div>';
-    h+='<input type="checkbox" id="sub'+k+'" style="display:none">';
+    h+='<input type="checkbox" id="sub'+k+'" style="display:none" onchange="bldTopics()">';
     h+='</div>';
   });
   document.getElementById('subjTags').innerHTML=h;
 })();
+
+// Topic selector — generates chip grid from selected subjects and loaded questions
+var topicSet={}; // cache: subject -> sorted unique topic names
+function bldTopics(){
+  var s=[];Object.keys(M).forEach(function(k){if(document.getElementById(k).checked)s.push(M[k])});
+  var el=document.getElementById('topicToggle'),grid=document.getElementById('topicGrid');
+  if(!s.length){el.style.display='none';grid.style.display='none';return}
+  if(!D||!Q){el.style.display='none';return}
+  // Build topic cache per subject
+  s.forEach(function(subj){
+    if(!topicSet[subj]){var ts={};Q.forEach(function(q){if(q.lawName===subj){var tp=topicName(q);if(tp!=='其他')ts[tp]=(ts[tp]||0)+1}});topicSet[subj]=Object.keys(ts).sort()}
+  });
+  var all=[];s.forEach(function(subj){topicSet[subj].forEach(function(t){if(all.indexOf(t)===-1)all.push(t)})});
+  el.style.display='';el.querySelector('#topicCount').textContent='('+all.length+'个)';
+  // Render chips
+  var h='';all.forEach(function(t){h+='<span class="topic-chip" onclick="this.classList.toggle(\'on\')">'+t+'</span>'});
+  grid.innerHTML=h;
+}
+function togTopics(){
+  var grid=document.getElementById('topicGrid'),arr=document.getElementById('topicArrow');
+  if(grid.style.display==='flex'){grid.style.display='none';arr.textContent='▶'}
+  else{if(!grid.innerHTML.trim())bldTopics();grid.style.display='flex';arr.textContent='▼'}
+}
+// Rebuild topics when subject checkbox changes (handled via onchange in HTML)
 
 // Auto sync on load
 setTimeout(function(){cloudSyncPull();updateHomeProgress();}, 600);
@@ -1534,22 +1566,25 @@ function selAll(v){
     if(cb)cb.checked=v;
     t.classList.toggle('sel',v);
   });
+  bldTopics();
 }
 
 function startQuiz(){
-  console.log('startQuiz called');
   var s=[];Object.keys(M).forEach(function(k){if(document.getElementById(k).checked)s.push(M[k])});
   if(!s.length){alert('请至少选择一科');return}
+  // Collect selected topics
+  var tops=[],chips=document.querySelectorAll('#topicGrid .topic-chip.on');
+  chips.forEach(function(c){tops.push(c.textContent)});
   var z=document.getElementById('srcZT').checked,m=document.getElementById('srcMC').checked;
   if(!z&&!m){alert('请选择题目来源');return}
-  if(D){doS(s,z,m);return}
+  if(D){doS(s,z,m,null,tops);return}
   document.getElementById('loader').classList.remove('hidden');
   loadData(function(d){
-    Q=d;D=true;document.getElementById('loader').classList.add('hidden');doS(s,z,m);
+    Q=d;D=true;document.getElementById('loader').classList.add('hidden');doS(s,z,m,null,tops);
   },function(e){document.getElementById('loader').classList.add('hidden');showLoadError();});
 }
 
-function doS(s,z,m,sessionSize){
+function doS(s,z,m,sessionSize,topics){
   // === 出题参数(命名常量，方便统一调参) ===
   var SESSION_SIZE=sessionSize||100;
   var MASTERED_EF=2.5;          // 已掌握: 最低 EF
@@ -1576,6 +1611,11 @@ function doS(s,z,m,sessionSize){
   var newRatio=recentAccuracy===null?0.7:(recentAccuracy<0.6?0.6:(recentAccuracy<=0.7?0.7:0.8));
   var MIN_NEW=Math.ceil(SESSION_SIZE*newRatio);
   var pool=Q.filter(function(q){return s.indexOf(q.lawName)!==-1&&c.indexOf(q.source)!==-1});
+  // Topic filter — optional, only when user selected specific topics
+  var hasTopics=topics&&topics.length>0;
+  if(hasTopics){pool=pool.filter(function(q){return topics.indexOf(topicName(q))!==-1})}
+  // Auto-size: don't try to fill 100 if the pool is smaller
+  SESSION_SIZE=Math.min(SESSION_SIZE,Math.max(10,pool.length));
   if(!pool.length){alert('无匹配题目');return}
   // 过滤已掌握的题，保留到 masteredPool 供补足用
   var masteredPool=[];
