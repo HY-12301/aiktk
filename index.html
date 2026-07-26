@@ -1362,7 +1362,7 @@ function togSrc(type){
   var colors={MF:'#4f46e5',XF:'#ff7043',XZF:'#66bb6a',MS:'#ab47bc',XS:'#26c6da',SJF:'#ffa726',LLF:'#78909c',SGF:'#ef5350'};
   var h='';
   SUBJ_KEY_ORDER.forEach(function(k){
-    h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;this.classList.toggle(\'sel\',cb.checked)">';
+    h+='<div class="subj-tag" id="tag'+k+'" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;cb.dispatchEvent(new Event(\'change\'));this.classList.toggle(\'sel\',cb.checked)">';
     h+='<div class="subj-bg"><i class="sb-zt" id="bgZT'+k+'"></i><i class="sb-mc" id="bgMC'+k+'"></i></div>';
     h+='<div class="subj-row"><span class="subj-dot" style="background:'+(colors[k]||'#888')+'"></span><span class="subj-name">'+subMap[k]+'</span><span class="sp-zt"><b id="ztD'+k+'">0</b><i>/</i><span id="ztT'+k+'">—</span></span></div>';
     h+='<div class="subj-row"><span class="sp-mc"><b id="mcD'+k+'">0</b><i>/</i><span id="mcT'+k+'">—</span></span></div>';
