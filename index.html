@@ -1381,7 +1381,7 @@ function bldTopics(){
   if(!D||!Q){el.style.display='none';return}
   // Build topic cache per subject
   s.forEach(function(subj){
-    if(!topicSet[subj]){var ts={};Q.forEach(function(q){if(q.lawName===subj){var tp=topicName(q);if(tp!=='其他')ts[tp]=(ts[tp]||0)+1}});topicSet[subj]=Object.keys(ts).sort()}
+    if(!topicSet[subj]){var ts={};Q.forEach(function(q){if(q.lawName===subj){var tp=topicName(q);ts[tp]=(ts[tp]||0)+1}});topicSet[subj]=Object.keys(ts).sort()}
   });
   var all=[];s.forEach(function(subj){topicSet[subj].forEach(function(t){if(all.indexOf(t)===-1)all.push(t)})});
   el.style.display='';el.querySelector('#topicCount').textContent='('+all.length+'个)';
@@ -1732,7 +1732,7 @@ function qR(){
   var l=document.getElementById('quizLeft');
   var h='<div class="quiz-card">';
   if(q.stuff&&q.stuff.trim())h+='<div class="quiz-stuff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> '+esc(q.stuff)+'</div>';
-  h+='<div class="quiz-type"><span style="background:var(--primary-soft);color:var(--primary-600);padding:2px 8px;border-radius:3px;font-size:11px">'+T[q.type||1]+'</span><span>'+q.lawName+'</span><span>'+esc(q.source||'')+'</span>';
+  h+='<div class="quiz-type"><span style="background:var(--primary-soft);color:var(--primary-600);padding:2px 8px;border-radius:3px;font-size:11px">'+T[q.type||1]+'</span><span>'+q.lawName+'</span><span>'+esc(q.source||'')+'</span><span style="color:var(--text-tertiary);font-size:10px">'+topicName(q)+'</span>';
   // Status tag follows the actual question pool, not the internal SM-2 phase.
   var category=quizPoolCategory(q),labels={
     new:{text:'新题',phase:'new'},
@@ -1740,7 +1740,7 @@ function qR(){
     wrong1:{text:'渐稳',phase:'wrong'},
     wrong2:{text:'较稳',phase:'wrong'},
     marked:{text:'标记',phase:'marked'},
-    seen:{phase:'seen'},
+    seen:{text:'已做',phase:'seen'},
     mastered:{text:'熟练',phase:'mastered'}
   },tag=labels[category]||labels.seen;
   if(tag.text)h+='<span data-phase="'+tag.phase+'">'+tag.text+'</span>';
