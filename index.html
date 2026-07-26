@@ -710,6 +710,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 
 <div class="toolbar">
   <span id="dmToggle" onclick="toggleDark()" style="position:absolute;left:8px;top:10px;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;cursor:pointer;transition:background .15s"><svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+  <span id="tpDot" onclick="tgPick()" style="position:absolute;left:44px;top:16px;width:8px;height:8px;border-radius:50%;cursor:pointer;transition:transform .15s" title="切换主题"></span>
+  <div id="tpPick" style="position:fixed;top:56px;left:44px;display:none;gap:8px;z-index:200;background:var(--card);padding:8px 10px;border-radius:var(--radius-sm);border:0.5px solid var(--border-light);box-shadow:var(--shadow)"></div>
   <div class="tabs" style="display:inline-flex">
     <a href="javascript:;" class="active" data-tab="home" onclick="switchTab('home')">刷题</a>
     <a href="javascript:;" data-tab="marks" onclick="switchTab('marks')">标记</a>
@@ -968,6 +970,7 @@ function toggleDark(){
   var isDark=document.documentElement.classList.toggle('dark');
   updateDmIcon(isDark);
   localStorage.setItem('dm',isDark?'1':'0');
+  applyTheme(curTheme);
 }
 function updateDmIcon(isDark){
   var icon=document.getElementById('dmIcon');if(!icon)return;
@@ -975,12 +978,52 @@ function updateDmIcon(isDark){
     ?'<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
     :'<svg id="dmIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 }
+// Theme system — 4 themes
+var TCONF={
+  indigo:{n:'靛与宣',p:'#2a5d8f',l:{bg:'#f2ede3',ba:'#ebe6dc',ca:'#fbfaf6',cr:'#ffffff',tx:'#232120',ts:'#5f5a52',tt:'#716b61',pr:'#2a5d8f',p6:'#214c75',ps:'#e9eff6',bd:'#e3ddd0',bl:'#efeae0'},d:{bg:'#171a1e',ba:'#1c2126',ca:'#20252b',cr:'#282e35',tx:'#efe9dc',ts:'#b8b0a2',tt:'#8d8579',ps:'#1d2933',bd:'#46505a',bl:'#39414a'}},
+  nulla:{n:'法无明文',p:'#8a95a5',l:{bg:'#f8f9fa',ba:'#f0f1f3',ca:'#fefeff',cr:'#ffffff',tx:'#1a1b1c',ts:'#6b6d70',tt:'#949698',pr:'#8a95a5',p6:'#6e7886',ps:'#f0f1f4',bd:'#e2e3e5',bl:'#f0f1f3'},d:{bg:'#0c0d0f',ba:'#121316',ca:'#181a1c',cr:'#222427',tx:'#ebecee',ts:'#a0a2a6',tt:'#707276',ps:'#1a1c20',bd:'#2c2e32',bl:'#1c1e22'}},
+  verdigris:{n:'铜绿',p:'#62908a',l:{bg:'#f2f4f2',ba:'#eaedeb',ca:'#fafcfa',cr:'#ffffff',tx:'#181c1a',ts:'#606460',tt:'#888c88',pr:'#62908a',p6:'#4e736e',ps:'#eef2f0',bd:'#dde0dc',bl:'#edeff0'},d:{bg:'#0c1010',ba:'#121614',ca:'#161a18',cr:'#202422',tx:'#e2eae4',ts:'#a0a8a4',tt:'#707874',ps:'#161c1a',bd:'#2a302c',bl:'#1a201c'}},
+  spalt:{n:'劈木纹',p:'#9b948a',l:{bg:'#f6f4f0',ba:'#eeece8',ca:'#fcfbf8',cr:'#ffffff',tx:'#1a1917',ts:'#5e5c58',tt:'#868480',pr:'#9b948a',p6:'#7c7670',ps:'#f2f0ec',bd:'#e2ded8',bl:'#f0ede8'},d:{bg:'#0f0e0c',ba:'#151412',ca:'#191816',cr:'#232220',tx:'#eae8e2',ts:'#a4a29a',tt:'#74726c',ps:'#1a1816',bd:'#2e2c26',bl:'#1e1c18'}}
+};
+var THEME_KEYS=['indigo','nulla','verdigris','spalt'];
+var curTheme=localStorage.getItem('theme')||'indigo';
+function mapVars(t,isDark){
+  var v=t[isDark?'d':'l'];
+  return{'--bg':v.bg,'--bg-alt':v.ba,'--card':v.ca,'--card-raised':v.cr,
+    '--text':v.tx,'--text-secondary':v.ts,'--text-tertiary':v.tt,
+    '--primary':v.pr,'--primary-600':v.p6,'--primary-soft':v.ps,
+    '--border':v.bd,'--border-light':v.bl};
+}
+function applyTheme(k){
+  curTheme=k;var t=TCONF[k],isDark=localStorage.getItem('dm')==='1';
+  var vars=mapVars(t,isDark);
+  Object.keys(vars).forEach(function(key){document.documentElement.style.setProperty(key,vars[key])});
+  localStorage.setItem('theme',k);
+  var dot=document.getElementById('tpDot');if(dot)dot.style.background=t.p;
+  renderPicks();
+}
+function renderPicks(){
+  var el=document.getElementById('tpPick');if(!el)return;
+  var h='';THEME_KEYS.forEach(function(k){
+    var t=TCONF[k],ac=k===curTheme?' outline:2px solid var(--text);outline-offset:2px':'';
+    h+='<span style="display:inline-block;width:20px;height:20px;border-radius:50%;cursor:pointer;background:'+t.p+';'+ac+'" onclick="pickT(\''+k+'\')" title="'+t.n+'"></span>';
+  });
+  el.innerHTML=h;
+}
+function pickT(k){applyTheme(k);tgPick();}
+function tgPick(){
+  var p=document.getElementById('tpPick');
+  if(p.style.display==='flex'){p.style.display='none';return}
+  renderPicks();p.style.display='flex';
+  setTimeout(function(){document.addEventListener('click',function h(e){if(!p.contains(e.target)&&e.target.id!=='tpDot'){p.style.display='none';document.removeEventListener('click',h)}})},10);
+}
 (function(){
   var dm=localStorage.getItem('dm');
   var isDark=dm==='1'||(dm===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
   if(isDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}
   var icon=document.getElementById('dmIcon');
   updateDmIcon(isDark);
+  applyTheme(curTheme);
 })()
 var DEEPSEEK_KEY=localStorage.getItem('deepseekKey')||'';
 var DEEPSEEK_URL='https://api.deepseek.com/v1/chat/completions';
