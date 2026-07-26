@@ -142,9 +142,8 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .quiz-opt{padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.55;transition:var(--transition);background:var(--card)}
 .quiz-opt:hover{border-color:var(--primary);background:var(--primary-soft)}
 .quiz-opt .opt-letter{min-width:30px;height:30px;border-radius:50%;border:1.5px solid var(--text-secondary);text-align:center;line-height:28px;font-size:13px;flex-shrink:0;transition:var(--transition);font-weight:600}
-/* 选中态使用低饱和钢蓝，柔和但保持可辨识 */
-.quiz-opt.selected{border-color:#6f8ca8;color:var(--text);background:#edf2f6}
-.quiz-opt.selected .opt-letter{background:#6f8ca8;border-color:#6f8ca8;color:#fff}
+.quiz-opt.selected{border-color:var(--primary);color:var(--text);background:var(--primary-soft)}
+.quiz-opt.selected .opt-letter{background:var(--primary);border-color:var(--primary);color:#fff}
 .quiz-opt.correct{border-color:var(--success);color:var(--success);background:var(--success-soft)}
 .quiz-opt.correct .opt-letter{background:var(--success);border-color:var(--success);color:#fff}
 .quiz-opt.wrong{border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
@@ -339,14 +338,13 @@ a{text-decoration:none;color:inherit}li{list-style:none}
 .dark .quiz-current{color:#fff!important}
 .dark .quiz-pill{background:#39414a}
 .dark .quiz-rate{color:#efe9dc!important}
-.dark .quiz-opt{background:#20252b!important;border-color:#39414a;color:#efe9dc!important}
-.dark .quiz-opt:hover{background:#2f363e}
-/* 暗夜选中态使用降饱和钢蓝 */
-.dark .quiz-opt.selected{border-color:#607f98;background:#1d2730;color:#efe9dc}
-.dark .quiz-opt.correct{background:#182d22;border-color:#39795a;color:#62ad84}
-.dark .quiz-opt.wrong{background:#35201d;border-color:#8c4d47;color:#dd7970}
-.dark .quiz-opt.missed{background:#332818;border-color:#9a7137;color:#d4a25f}
-.dark .quiz-opt .opt-letter{background:#39414a;color:#efe9dc!important}
+.dark .quiz-opt{background:var(--card)!important;border-color:var(--border);color:var(--text)!important}
+.dark .quiz-opt:hover{background:var(--border-light)}
+.dark .quiz-opt.selected{border-color:var(--primary);background:var(--primary-soft);color:var(--text)}
+.dark .quiz-opt.correct{background:var(--success-soft);border-color:var(--success);color:var(--success)}
+.dark .quiz-opt.wrong{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.dark .quiz-opt.missed{background:var(--warning-soft);border-color:var(--warning);color:var(--warning)}
+.dark .quiz-opt .opt-letter{background:var(--border-light);color:var(--text)!important}
 .dark .quiz-question{color:#fff!important}
 .dark .quiz-stuff{background:#171a1e;color:#b8b0a2!important;border-color:#82a3bd}
 .dark .quiz-left,.dark .quiz-right{background:#171a1e}
@@ -980,10 +978,10 @@ function updateDmIcon(isDark){
 }
 // Theme system — 4 themes
 var TCONF={
-  indigo:{n:'靛与宣',p:'#2a5d8f',l:{bg:'#f2ede3',ba:'#ebe6dc',ca:'#fbfaf6',cr:'#ffffff',tx:'#232120',ts:'#5f5a52',tt:'#716b61',pr:'#2a5d8f',p6:'#214c75',ps:'#e9eff6',bd:'#e3ddd0',bl:'#efeae0'},d:{bg:'#171a1e',ba:'#1c2126',ca:'#20252b',cr:'#282e35',tx:'#efe9dc',ts:'#b8b0a2',tt:'#8d8579',ps:'#1d2933',bd:'#46505a',bl:'#39414a'}},
-  nulla:{n:'法无明文',p:'#8a95a5',l:{bg:'#f8f9fa',ba:'#f0f1f3',ca:'#fefeff',cr:'#ffffff',tx:'#1a1b1c',ts:'#6b6d70',tt:'#949698',pr:'#8a95a5',p6:'#6e7886',ps:'#f0f1f4',bd:'#e2e3e5',bl:'#f0f1f3'},d:{bg:'#0c0d0f',ba:'#121316',ca:'#181a1c',cr:'#222427',tx:'#ebecee',ts:'#a0a2a6',tt:'#707276',ps:'#1a1c20',bd:'#2c2e32',bl:'#1c1e22'}},
-  verdigris:{n:'铜绿',p:'#62908a',l:{bg:'#f2f4f2',ba:'#eaedeb',ca:'#fafcfa',cr:'#ffffff',tx:'#181c1a',ts:'#606460',tt:'#888c88',pr:'#62908a',p6:'#4e736e',ps:'#eef2f0',bd:'#dde0dc',bl:'#edeff0'},d:{bg:'#0c1010',ba:'#121614',ca:'#161a18',cr:'#202422',tx:'#e2eae4',ts:'#a0a8a4',tt:'#707874',ps:'#161c1a',bd:'#2a302c',bl:'#1a201c'}},
-  spalt:{n:'劈木纹',p:'#9b948a',l:{bg:'#f6f4f0',ba:'#eeece8',ca:'#fcfbf8',cr:'#ffffff',tx:'#1a1917',ts:'#5e5c58',tt:'#868480',pr:'#9b948a',p6:'#7c7670',ps:'#f2f0ec',bd:'#e2ded8',bl:'#f0ede8'},d:{bg:'#0f0e0c',ba:'#151412',ca:'#191816',cr:'#232220',tx:'#eae8e2',ts:'#a4a29a',tt:'#74726c',ps:'#1a1816',bd:'#2e2c26',bl:'#1e1c18'}}
+  indigo:{n:'靛与宣',p:'#2a5d8f',l:{bg:'#f2ede3',ba:'#ebe6dc',ca:'#fbfaf6',cr:'#ffffff',tx:'#232120',ts:'#5f5a52',tt:'#716b61',pr:'#2a5d8f',p6:'#214c75',ps:'#e9eff6',bd:'#e3ddd0',bl:'#efeae0'},d:{bg:'#171a1e',ba:'#1c2126',ca:'#20252b',cr:'#282e35',tx:'#efe9dc',ts:'#b8b0a2',tt:'#8d8579',ps:'#1d2933',ss:'#182d22',ds:'#35201d',ws:'#332818',bd:'#46505a',bl:'#39414a'}},
+  nulla:{n:'法无明文',p:'#8a95a5',l:{bg:'#f8f9fa',ba:'#f0f1f3',ca:'#fefeff',cr:'#ffffff',tx:'#1a1b1c',ts:'#6b6d70',tt:'#949698',pr:'#8a95a5',p6:'#6e7886',ps:'#f0f1f4',bd:'#e2e3e5',bl:'#f0f1f3'},d:{bg:'#0c0d0f',ba:'#121316',ca:'#181a1c',cr:'#222427',tx:'#ebecee',ts:'#a0a2a6',tt:'#707276',ps:'#1a1c20',ss:'#1a201c',ds:'#281a1a',ws:'#282218',bd:'#2c2e32',bl:'#1c1e22'}},
+  verdigris:{n:'铜绿',p:'#62908a',l:{bg:'#f2f4f2',ba:'#eaedeb',ca:'#fafcfa',cr:'#ffffff',tx:'#181c1a',ts:'#606460',tt:'#888c88',pr:'#62908a',p6:'#4e736e',ps:'#eef2f0',bd:'#dde0dc',bl:'#edeff0'},d:{bg:'#0c1010',ba:'#121614',ca:'#161a18',cr:'#202422',tx:'#e2eae4',ts:'#a0a8a4',tt:'#707874',ps:'#161c1a',ss:'#16221a',ds:'#261a18',ws:'#262016',bd:'#2a302c',bl:'#1a201c'}},
+  spalt:{n:'劈木纹',p:'#9b948a',l:{bg:'#f6f4f0',ba:'#eeece8',ca:'#fcfbf8',cr:'#ffffff',tx:'#1a1917',ts:'#5e5c58',tt:'#868480',pr:'#9b948a',p6:'#7c7670',ps:'#f2f0ec',bd:'#e2ded8',bl:'#f0ede8'},d:{bg:'#0f0e0c',ba:'#151412',ca:'#191816',cr:'#232220',tx:'#eae8e2',ts:'#a4a29a',tt:'#74726c',ps:'#1a1816',ss:'#1a2018',ds:'#2a1a18',ws:'#282018',bd:'#2e2c26',bl:'#1e1c18'}}
 };
 var THEME_KEYS=['indigo','nulla','verdigris','spalt'];
 var curTheme=localStorage.getItem('theme')||'indigo';
@@ -992,6 +990,7 @@ function mapVars(t,isDark){
   return{'--bg':v.bg,'--bg-alt':v.ba,'--card':v.ca,'--card-raised':v.cr,
     '--text':v.tx,'--text-secondary':v.ts,'--text-tertiary':v.tt,
     '--primary':v.pr,'--primary-600':v.p6,'--primary-soft':v.ps,
+    '--success-soft':v.ss||'#e8f4ee','--danger-soft':v.ds||'#fbecea','--warning-soft':v.ws||'#fbf2e2',
     '--border':v.bd,'--border-light':v.bl};
 }
 function applyTheme(k){
